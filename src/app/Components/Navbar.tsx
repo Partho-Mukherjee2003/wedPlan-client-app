@@ -86,11 +86,11 @@ export default function Navbar() {
 
           <span className="h-5 w-px bg-[var(--gold)] opacity-50" />
 
-          <Link href="/signin" className={linkClass("/signin")}>
+          <Link href="/sign-in" className={linkClass("/sign-in")}>
             Sign In
           </Link>
           <Link
-            href="/signup"
+            href="/sign-up"
             className="rounded-full bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)]"
           >
             Sign Up
