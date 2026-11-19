@@ -51,7 +51,7 @@ export default function ProfilePage() {
   };
 
   // Empty function for you - add ImgBB upload here later
-  const uploadToImgBB = async (file: File) => {
+  const uploadToImgBB = async (file: File): Promise<string | null> => {
     // Add your ImgBB upload functionality here
     // Return the image URL after upload
     return null;

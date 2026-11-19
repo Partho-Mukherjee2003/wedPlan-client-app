@@ -1,9 +1,27 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ServiceType } from "@/app/Components/Service";
+import { authClient } from "@/app/lib/auth-client";
 import Image from "next/image";
+
+type UserType = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  role: "admin" | "vendor" | "customer";
+  isBlocked: boolean;
+  businessName?: string | null;
+  subscriptionPlan: "free" | "premium";
+  subscriptionExpiresAt?: Date | string | null;
+};
 
 const vendorNames: Record<string, string> = {
   user_vendor_01: "Dream Wedding Studio",
@@ -34,6 +52,69 @@ function Flower({ className = "" }: { className?: string }) {
 
 export default function ServiceDetails({ service }: { service: ServiceType }) {
   const vendorName = vendorNames[service.vendorId] || "WedPlan Vendor";
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user as UserType | undefined;
+
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const isOwnService = user?.id === service.vendorId;
+  const isAdmin = user?.role === "admin";
+
+  const handleBookClick = () => {
+    if (!user) {
+      router.push(`/sign-in?callbackURL=/services/${service._id}`);
+      return;
+    }
+    setShowForm(!showForm);
+  };
+
+  const handleBooking = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setIsLoading(true);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const bookingData = {
+      serviceId: service._id,
+      vendorId: service.vendorId,
+      customerId: user?.id,
+      eventDate: String(formData.get("eventDate")),
+      eventLocation: String(formData.get("eventLocation")),
+      message: String(formData.get("message") || ""),
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Booking failed. Please try again.");
+        return;
+      }
+
+      setSuccess(
+        "Booking request sent successfully! The vendor will review it soon.",
+      );
+      form.reset();
+      setShowForm(false);
+    } catch {
+      setError("Could not connect to the server.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <section className="relative overflow-hidden bg-[#FFF9F5] py-10 sm:py-14">
@@ -183,18 +264,107 @@ export default function ServiceDetails({ service }: { service: ServiceType }) {
                 </span>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="mt-5 w-full rounded-full bg-[#C75B5B] py-4 text-sm font-semibold text-white transition hover:bg-[#B04A4A]"
-              >
-                Book This Service →
-              </motion.button>
+              {isOwnService ? (
+                <p className="mt-5 rounded-xl bg-white/10 px-4 py-3 text-center text-sm text-white/80">
+                  This is your own service. You cannot book it.
+                </p>
+              ) : isAdmin ? (
+                <p className="mt-5 rounded-xl bg-white/10 px-4 py-3 text-center text-sm text-white/80">
+                  Admin accounts cannot submit booking requests.
+                </p>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleBookClick}
+                  className="mt-5 w-full rounded-full bg-[#C75B5B] py-4 text-sm font-semibold text-white transition hover:bg-[#B04A4A]"
+                >
+                  {showForm ? "Cancel Booking" : "Book This Service →"}
+                </motion.button>
+              )}
 
               <p className="mt-3 text-center text-xs text-white/60">
                 No payment needed now • Free cancellation for pending bookings
               </p>
             </motion.div>
+
+            {/* Success / Error */}
+            {error && (
+              <p className="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+                {error}
+              </p>
+            )}
+            {success && (
+              <p className="mt-4 rounded-xl bg-[#E6F4EC] px-4 py-3 text-sm font-medium text-[#2E7D5B]">
+                {success}
+              </p>
+            )}
+
+            {/* Booking Form - click korlei ashbe */}
+            <AnimatePresence>
+              {showForm && !isOwnService && !isAdmin && (
+                <motion.form
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.4 }}
+                  onSubmit={handleBooking}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-5 flex flex-col gap-4 rounded-[20px] border border-[#F0DCD5] bg-white p-6">
+                    <h3 className="font-serif text-lg font-bold text-[#241A17]">
+                      Booking Request
+                    </h3>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-semibold text-[#241A17]">
+                        Event Date
+                      </label>
+                      <input
+                        name="eventDate"
+                        type="date"
+                        required
+                        min={new Date().toISOString().split("T")[0]}
+                        className="w-full rounded-xl border border-[#E8D5CE] px-4 py-3 text-sm outline-none focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-semibold text-[#241A17]">
+                        Event Location
+                      </label>
+                      <input
+                        name="eventLocation"
+                        type="text"
+                        placeholder="e.g. Mirpur DOHS Community Centre, Dhaka"
+                        required
+                        className="w-full rounded-xl border border-[#E8D5CE] px-4 py-3 text-sm outline-none placeholder:text-[#B8A89F] focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-semibold text-[#241A17]">
+                        Message
+                      </label>
+                      <textarea
+                        name="message"
+                        placeholder="Write a message for the vendor..."
+                        rows={3}
+                        className="w-full rounded-xl border border-[#E8D5CE] px-4 py-3 text-sm outline-none placeholder:text-[#B8A89F] focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full rounded-full bg-[#C75B5B] py-3.5 text-sm font-semibold text-white transition hover:bg-[#B04A4A] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {isLoading ? "Sending..." : "Send Booking Request"}
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

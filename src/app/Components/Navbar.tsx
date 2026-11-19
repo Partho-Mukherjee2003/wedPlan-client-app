@@ -47,19 +47,25 @@ function Leaf({ className = "" }: IconProps) {
 }
 
 /* Profile image, or the first letter of the name if there is no image */
+/* Profile image, or the first letter of the name if there is no image */
 function Avatar({ name, image }: { name: string; image?: string | null }) {
-  if (image) {
+  const [failed, setFailed] = useState(false);
+
+  if (image && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={image}
         alt={name}
-        className="h-9 w-9 rounded-full object-cover ring-2 ring-[var(--gold)]"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className="h-9 w-9 rounded-full object-cover ring-2 ring-(--gold)]"
       />
     );
   }
+
   return (
-    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-semibold text-white ring-2 ring-[var(--gold)]">
+    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-(--primary)] text-sm font-semibold text-white ring-2 ring-(--gold)]">
       {name.charAt(0).toUpperCase()}
     </span>
   );

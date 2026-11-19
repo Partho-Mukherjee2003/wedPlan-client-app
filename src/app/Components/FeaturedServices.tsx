@@ -1,6 +1,32 @@
 import Link from "next/link";
 import Service, { ServiceType } from "@/app/Components/Service";
 
+export function FeaturedServicesFallback() {
+  return (
+    <section
+      aria-label="Featured services loading"
+      aria-busy="true"
+      className="bg-[#FFF9F5] py-16 sm:py-24"
+    >
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        <div className="text-center">
+          <div className="mx-auto h-4 w-36 animate-pulse rounded-full bg-[#FDECEA]" />
+          <div className="mx-auto mt-5 h-10 w-72 max-w-full animate-pulse rounded bg-[#FDECEA]" />
+          <div className="mx-auto mt-4 h-4 max-w-xl animate-pulse rounded bg-[#FDECEA]" />
+        </div>
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((card) => (
+            <div
+              key={card}
+              className="h-80 animate-pulse rounded-[24px] border border-[#F0DCD5] bg-white"
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default async function FeaturedServices() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -8,7 +34,14 @@ export default async function FeaturedServices() {
 
   try {
     const res = await fetch(`${apiUrl}/services`, { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch services: ${res.status}`);
+    }
+
     const servicesData: ServiceType[] = await res.json();
+    if (!Array.isArray(servicesData)) {
+      throw new Error("Services API returned an invalid response.");
+    }
 
     // PDF rule: sudhu approved service, prothom 6 ta
     featuredServices = servicesData
