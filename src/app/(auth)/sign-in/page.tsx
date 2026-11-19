@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { authClient } from "@/app/lib/auth-client";
 
 // Simple flower for decoration
 function Flower({ className = "" }: { className?: string }) {
@@ -65,24 +66,50 @@ function GoogleIcon({ className = "" }: { className?: string }) {
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Empty function for you - add your Google login here later
-  const handleGoogleSignIn = () => {
-    // Add your Google sign-in functionality here
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const { error: signInError } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+
+      if (signInError) {
+        setError(signInError.message ?? "Google sign-in failed.");
+      }
+    } catch {
+      setError("Could not connect to the authentication server.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    console.log(data);
+    try {
+      const { error: signInError } = await authClient.signIn.email({
+        email: String(formData.get("email")),
+        password: String(formData.get("password")),
+        rememberMe: formData.get("remember") === "on",
+        callbackURL: "/",
+      });
 
-    setTimeout(() => {
+      if (signInError) {
+        setError(signInError.message ?? "Sign-in failed.");
+      }
+    } catch {
+      setError("Could not connect to the authentication server.");
+    } finally {
       setIsLoading(false);
-      alert(`Welcome back! Email: ${data.email}`);
-    }, 1500);
+    }
   };
 
   return (
@@ -187,7 +214,8 @@ export default function SignInPage() {
         <button
           type="button"
           onClick={handleGoogleSignIn}
-          className="mt-7 flex w-full items-center justify-center gap-3 rounded-full border border-[#E8D5CE] bg-white py-3 text-sm font-semibold text-[#241A17] transition-all hover:-translate-y-0.5 hover:bg-[#FFF9F5] hover:shadow-md"
+          disabled={isLoading}
+          className="mt-7 flex w-full items-center justify-center gap-3 rounded-full border border-[#E8D5CE] bg-white py-3 text-sm font-semibold text-[#241A17] transition-all hover:-translate-y-0.5 hover:bg-[#FFF9F5] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
         >
           <GoogleIcon className="h-5 w-5" />
           Sign in with Google
@@ -199,6 +227,12 @@ export default function SignInPage() {
           OR CONTINUE WITH EMAIL
           <span className="h-px flex-1 bg-[#F0DCD5]" />
         </div>
+
+        {error && (
+          <p role="alert" className="mb-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+            {error}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
@@ -253,12 +287,6 @@ export default function SignInPage() {
               />
               Remember me
             </label>
-            <Link
-              href="/forgot-password"
-              className="font-medium text-[#C75B5B] hover:underline"
-            >
-              Forgot password?
-            </Link>
           </div>
 
           <button

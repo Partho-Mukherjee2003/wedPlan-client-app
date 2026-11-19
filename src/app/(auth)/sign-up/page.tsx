@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { authClient } from "@/app/lib/auth-client";
+import {useRouter} from "next/navigation"
 
 // Simple flower for decoration
 function Flower({ className = "" }: { className?: string }) {
@@ -25,72 +26,70 @@ function Flower({ className = "" }: { className?: string }) {
 }
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Password rules - simple check
-  const hasMinLength = password.length >= 6;
+  const router = useRouter()
+
+  const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
 
-  // Empty function for you - add Google sign-up here later
-  const handleGoogleSignUp = () => {
-    // Add your Google sign-up functionality here
-  };
+  const handleGoogleSignUp = async () => {
+    setError("");
+    setIsLoading(true);
 
-  // Show image preview when user selects a file
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImagePreview(URL.createObjectURL(file));
+    try {
+      const { error: signUpError } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+
+      if (signUpError) {
+        setError(signUpError.message ?? "Google sign-up failed.");
+      }
+    } catch {
+      setError("Could not connect to the authentication server.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
-    // Check password rules
     if (!hasMinLength || !hasUppercase || !hasLowercase) {
       setError(
-        "Password must be 6+ characters, with 1 uppercase and 1 lowercase letter.",
+        "Password must be at least 8 characters and include uppercase and lowercase letters.",
       );
       return;
     }
 
     setIsLoading(true);
-
-    // Get all form data with FormData
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    console.log(data);
-    // data = { name, email, password, role, profileImage: File }
+    const role = String(formData.get("role")) as "customer" | "vendor";
 
-    // ImgBB upload will go here later
-    // const imageFile = formData.get("profileImage");
-    // Upload imageFile to ImgBB and get the URL here
+    try {
+      const { error: signUpError } = await authClient.signUp.email({
+        name: String(formData.get("name")),
+        email: String(formData.get("email")),
+        password,
+        role,
+        callbackURL: "/",
+      });
 
-    // Demo success - remove this and add real registration later
-    setTimeout(() => {
+      if (signUpError) {
+        setError(signUpError.message ?? "Account creation failed.");
+      }
+    } catch {
+      setError("Could not connect to the authentication server.");
+    } finally {
       setIsLoading(false);
-      setSuccess("Account created successfully! Redirecting...");
-
-      // Redirect by role
-      const role = data.role as string;
-      setTimeout(() => {
-        if (role === "vendor") {
-          router.push("/vendor/dashboard");
-        } else {
-          router.push("/");
-        }
-      }, 1500);
-    }, 1200);
+    }
+    router.push("/sign-in");
   };
 
   return (
@@ -151,7 +150,8 @@ export default function SignUpPage() {
           <button
             type="button"
             onClick={handleGoogleSignUp}
-            className="mt-6 flex w-full items-center justify-center gap-3 rounded-full border border-[#E8D5CE] bg-white py-3 text-sm font-semibold text-[#241A17] transition hover:bg-[#FFF9F5]"
+            disabled={isLoading}
+            className="mt-6 flex w-full items-center justify-center gap-3 rounded-full border border-[#E8D5CE] bg-white py-3 text-sm font-semibold text-[#241A17] transition hover:bg-[#FFF9F5] disabled:cursor-not-allowed disabled:opacity-70"
           >
             <span className="text-lg font-bold text-[#4285F4]">G</span>
             Sign up with Google
@@ -163,15 +163,9 @@ export default function SignUpPage() {
             <span className="h-px flex-1 bg-[#F0DCD5]" />
           </div>
 
-          {/* Success / Error Message */}
           {error && (
-            <p className="mb-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+            <p role="alert" className="mb-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
               {error}
-            </p>
-          )}
-          {success && (
-            <p className="mb-5 rounded-xl bg-[#E6F4EC] px-4 py-3 text-sm font-medium text-[#2E7D5B]">
-              {success}
             </p>
           )}
 
@@ -188,7 +182,7 @@ export default function SignUpPage() {
                 id="name"
                 name="name"
                 type="text"
-                placeholder="Partho Mukherjee"
+                placeholder="Your full name"
                 required
                 className="w-full rounded-xl border border-[#E8D5CE] px-4 py-3 text-sm outline-none placeholder:text-[#B8A89F] focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20"
               />
@@ -245,7 +239,7 @@ export default function SignUpPage() {
                 <li
                   className={hasMinLength ? "text-[#2E7D5B]" : "text-[#A08D84]"}
                 >
-                  {hasMinLength ? "✓" : "•"} Minimum 6 characters
+                  {hasMinLength ? "✓" : "•"} Minimum 8 characters
                 </li>
                 <li
                   className={hasUppercase ? "text-[#2E7D5B]" : "text-[#A08D84]"}
@@ -258,37 +252,6 @@ export default function SignUpPage() {
                   {hasLowercase ? "✓" : "•"} One lowercase letter (a-z)
                 </li>
               </ul>
-            </div>
-
-            {/* Profile Image - Optional */}
-            <div>
-              <label
-                htmlFor="profileImage"
-                className="mb-1 block text-sm font-semibold text-[#241A17]"
-              >
-                Profile Image{" "}
-                <span className="font-normal text-[#A08D84]">(Optional)</span>
-              </label>
-              <div className="flex items-center gap-3">
-                {imagePreview && (
-                  <img
-                    src={imagePreview}
-                    alt="Profile preview"
-                    className="h-12 w-12 rounded-full object-cover ring-2 ring-[#F0DCD5]"
-                  />
-                )}
-                <input
-                  id="profileImage"
-                  name="profileImage"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full rounded-xl border border-[#E8D5CE] px-3 py-2 text-sm text-[#6F5E56] file:mr-3 file:rounded-full file:border-0 file:bg-[#FDECEA] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#C75B5B]"
-                />
-              </div>
-              <p className="mt-1 text-xs text-[#A08D84]">
-                Image will be uploaded with ImgBB.
-              </p>
             </div>
 
             {/* Account Role */}
