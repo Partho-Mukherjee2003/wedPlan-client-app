@@ -13,7 +13,7 @@ const db = client.db("WedPlan");
 
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: process.env.BETTER_AUTH_URL || process.env.CLIENT_URL || "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET,
   database: mongodbAdapter(db, {
     client,

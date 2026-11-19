@@ -16,7 +16,7 @@ export default function CustomerOverviewPage() {
 
   useEffect(() => {
     if (!userId) return;
-    fetch(`http://localhost:5000/bookings?customerId=${userId}`)
+    fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?customerId=${userId}`)
       .then((res) => res.json())
       .then((data) => setBookings(data))
       .catch(() => console.log("Failed to load bookings"))

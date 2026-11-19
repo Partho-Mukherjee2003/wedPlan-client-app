@@ -22,7 +22,7 @@ export default function ManageUsersPage() {
 
   const reloadUsers = async () => {
     try {
-      const res = await fetch("http://localhost:5000/users");
+      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`);
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
     } catch {
@@ -35,7 +35,7 @@ export default function ManageUsersPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/users");
+        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`);
         const data = await res.json();
         setUsers(Array.isArray(data) ? data : []);
       } catch {
@@ -51,7 +51,7 @@ export default function ManageUsersPage() {
     const userId = user._id || user.id;
     if (!userId) return;
     try {
-      await fetch(`http://localhost:5000/users/${userId}/block`, {
+      await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users/${userId}/block`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isBlocked: !user.isBlocked }),

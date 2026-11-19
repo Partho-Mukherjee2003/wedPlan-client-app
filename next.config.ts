@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  env: {
+    CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
+    SERVER_URL: process.env.SERVER_URL || "http://localhost:5000",
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

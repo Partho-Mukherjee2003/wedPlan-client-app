@@ -10,7 +10,7 @@ export default async function ServiceDetailsPage({
 }) {
   const { id } = await params;
 
-  const res = await fetch(`http://localhost:5000/services/${id}`, {
+  const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services/${id}`, {
     cache: "no-store",
   });
 

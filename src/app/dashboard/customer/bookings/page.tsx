@@ -54,9 +54,9 @@ export default function MyBookingsPage() {
     if (!userId) return;
     try {
       const [bookingRes, serviceRes, userRes] = await Promise.all([
-        fetch(`http://localhost:5000/bookings?customerId=${userId}`),
-        fetch("http://localhost:5000/services"),
-        fetch("http://localhost:5000/users"),
+        fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?customerId=${userId}`),
+        fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
+        fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
       ]);
       const bookingData = await bookingRes.json();
       const serviceData = await serviceRes.json();
@@ -78,9 +78,9 @@ export default function MyBookingsPage() {
     const loadData = async () => {
       try {
         const [bookingRes, serviceRes, userRes] = await Promise.all([
-          fetch(`http://localhost:5000/bookings?customerId=${userId}`),
-          fetch("http://localhost:5000/services"),
-          fetch("http://localhost:5000/users"),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?customerId=${userId}`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
         ]);
         const bookingData = await bookingRes.json();
         const serviceData = await serviceRes.json();
@@ -101,7 +101,7 @@ export default function MyBookingsPage() {
 
   const handleCancel = async (bookingId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/bookings/${bookingId}`, {
+      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "cancelled", customerId: userId }),

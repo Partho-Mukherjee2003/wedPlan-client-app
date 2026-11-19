@@ -19,10 +19,10 @@ export default function AdminOverviewPage() {
     const loadData = async () => {
       try {
         const [userRes, serviceRes, bookingRes, txnRes] = await Promise.all([
-          fetch("http://localhost:5000/users"),
-          fetch("http://localhost:5000/services"),
-          fetch("http://localhost:5000/bookings"),
-          fetch("http://localhost:5000/transactions"),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/transactions`),
         ]);
 
         setUsers(Array.isArray(await userRes.json()) ? await userRes.clone().json().catch(() => []) : []);
@@ -37,10 +37,10 @@ export default function AdminOverviewPage() {
     const loadAll = async () => {
       try {
         const [userRes, serviceRes, bookingRes, txnRes] = await Promise.all([
-          fetch("http://localhost:5000/users"),
-          fetch("http://localhost:5000/services"),
-          fetch("http://localhost:5000/bookings"),
-          fetch("http://localhost:5000/transactions"),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/transactions`),
         ]);
 
         const userData = await userRes.json();

@@ -31,8 +31,8 @@ export default function VendorOverviewPage() {
     const loadData = async () => {
       try {
         const [bookingRes, serviceRes] = await Promise.all([
-          fetch(`http://localhost:5000/bookings?vendorId=${userId}`),
-          fetch("http://localhost:5000/services"),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
         ]);
         const bookingData = await bookingRes.json();
         const serviceData = await serviceRes.json();
