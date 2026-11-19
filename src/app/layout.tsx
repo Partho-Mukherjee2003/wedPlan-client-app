@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import ConditionalLayout from "@/app/Components/ConditionalLayout";
 import "./globals.css";
-import Navbar from "./Components/Navbar";
-import Footer from "./Components/Footer";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -16,25 +15,20 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "WedPlan — Wedding Planning Platform",
-  description:
-    "Find, book and manage your perfect wedding services — venues, photography, catering and more.",
+  description: "Plan your dream wedding with trusted vendors in Bangladesh.",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html
-      lang="en"
-      className={`${playfair.variable} ${jakarta.variable} h-full antialiased`}
-    >
-      <body className="min-h-screen flex flex-col bg-[#FFF9F5] text-[#241A17]">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-
-        <Footer/>
+    <html lang="en">
+      <body
+        className={`${playfair.variable} ${jakarta.variable} flex min-h-screen flex-col bg-[#FFF9F5] font-sans antialiased`}
+      >
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   );

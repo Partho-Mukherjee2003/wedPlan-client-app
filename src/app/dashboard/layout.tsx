@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
 
-export const dynamic = "force-dynamic"; // ← ei line ta add koro
+export const dynamic = "force-dynamic";
 
 type UserType = {
   id: string;
@@ -28,7 +28,7 @@ export default async function DashboardLayout({
   const user = session.user as unknown as UserType;
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] bg-[#FFF9F5]">
+    <div className="flex min-h-screen flex-col bg-[#FFF9F5] md:flex-row">
       <DashboardSidebar user={user} />
       <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
     </div>
