@@ -75,21 +75,32 @@ export default function VendorBookingsPage() {
     loadData();
   }, [userId]);
 
-  const handleStatus = async (
-    bookingId: string,
-    status: "accepted" | "rejected",
-  ) => {
-    try {
-      await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`, {
+const handleStatus = async (
+  bookingId: string,
+  status: "accepted" | "rejected",
+) => {
+  try {
+    const res = await fetch(
+      `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`,
+      {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      reloadBookings();
-    } catch {
-      setError("Could not update this booking.");
+        body: JSON.stringify({ status, vendorId: userId }),
+      },
+    );
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.message || "Could not update this booking.");
+      return;
     }
-  };
+
+    reloadBookings();
+  } catch {
+    setError("Could not update this booking.");
+  }
+};
+
 
   const getServiceName = (serviceId: string): string =>
     services.find((service) => service._id === serviceId)?.serviceName ||
