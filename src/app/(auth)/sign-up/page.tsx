@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { authClient } from "@/app/lib/auth-client";
 import { useRouter } from "next/navigation";
@@ -35,11 +35,7 @@ export default function SignUpPage() {
   const formRef = useRef<HTMLFormElement>(null);
 
   // Page e dhuklei form khali kore dao
-  useEffect(() => {
-    formRef.current?.reset();
-    setPassword("");
-    setShowPassword(false);
-  }, []);
+
 
   const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
