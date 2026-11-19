@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
 
@@ -32,12 +33,13 @@ export default function VendorBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Button click er pore reload korar jonno
   const reloadBookings = async () => {
     if (!userId) return;
     try {
       const [bookingRes, serviceRes] = await Promise.all([
-        fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`),
+        fetch(
+          `${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`,
+        ),
         fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
       ]);
       const bookingData = await bookingRes.json();
@@ -51,15 +53,18 @@ export default function VendorBookingsPage() {
     }
   };
 
-  // Prothombar data ana - loadData ekhon useEffect er vitorei
   useEffect(() => {
     if (!userId) return;
 
     const loadData = async () => {
       try {
         const [bookingRes, serviceRes] = await Promise.all([
-          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`),
-          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
+          fetch(
+            `${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`,
+          ),
+          fetch(
+            `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
+          ),
         ]);
         const bookingData = await bookingRes.json();
         const serviceData = await serviceRes.json();
@@ -75,40 +80,37 @@ export default function VendorBookingsPage() {
     loadData();
   }, [userId]);
 
-const handleStatus = async (
-  bookingId: string,
-  status: "accepted" | "rejected",
-) => {
-  try {
-    const res = await fetch(
-      `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, vendorId: userId }),
-      },
-    );
+  const handleStatus = async (
+    bookingId: string,
+    status: "accepted" | "rejected",
+  ) => {
+    try {
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status, vendorId: userId }),
+        },
+      );
 
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.message || "Could not update this booking.");
-      return;
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Could not update this booking.");
+        return;
+      }
+      reloadBookings();
+    } catch {
+      setError("Could not update this booking.");
     }
+  };
 
-    reloadBookings();
-  } catch {
-    setError("Could not update this booking.");
-  }
-};
-
-
-  const getServiceName = (serviceId: string): string =>
-    services.find((service) => service._id === serviceId)?.serviceName ||
-    "Wedding Service";
+  const getService = (serviceId: string): ServiceType | undefined =>
+    services.find((service) => service._id === serviceId);
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3 py-20">
         <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#F3D9D0] border-t-[#C75B5B]" />
         <p className="text-[#6F5E56]">Loading requests...</p>
       </div>
@@ -116,67 +118,100 @@ const handleStatus = async (
   }
 
   return (
-    <div>
-      <h1 className="font-serif text-3xl font-bold text-[#241A17]">
-        Booking Requests
-      </h1>
+    <div className="mx-auto w-full max-w-4xl">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center"
+      >
+        <h1 className="font-serif text-3xl font-bold text-[#241A17] sm:text-4xl">
+          Booking <span className="italic text-[#C75B5B]">Requests</span>
+        </h1>
+        <p className="mt-2 text-[#6F5E56]">
+          You have {bookings.length} booking request
+          {bookings.length !== 1 ? "s" : ""} in total.
+        </p>
+      </motion.div>
 
       {error && (
-        <p className="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+        <p className="mx-auto mt-5 max-w-xl rounded-xl bg-[#FDECEC] px-4 py-3 text-center text-sm font-medium text-[#DC2626]">
           {error}
         </p>
       )}
 
       {bookings.length === 0 ? (
-        <p className="mt-6 rounded-[20px] border border-[#F0DCD5] bg-white p-8 text-center text-[#6F5E56]">
-          No booking requests yet.
-        </p>
+        <div className="mx-auto mt-8 max-w-xl rounded-[24px] border border-[#F0DCD5] bg-white p-10 text-center">
+          <p className="text-4xl">💌</p>
+          <p className="mt-3 font-serif text-xl font-bold text-[#241A17]">
+            No booking requests yet
+          </p>
+          <p className="mt-1.5 text-sm text-[#6F5E56]">
+            When customers book your services, their requests will appear here.
+          </p>
+        </div>
       ) : (
-        <div className="mt-6 flex flex-col gap-4">
-          {bookings.map((booking) => (
-            <div
-              key={booking._id}
-              className="rounded-[20px] border border-[#F0DCD5] bg-white p-5"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="font-semibold text-[#241A17]">
-                  {getServiceName(booking.serviceId)}
-                </p>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusColors[booking.status]}`}
-                >
-                  {booking.status}
-                </span>
-              </div>
+        <div className="mt-8 flex flex-col gap-4">
+          {bookings.map((booking, index) => {
+            const service = getService(booking.serviceId);
+            return (
+              <motion.div
+                key={booking._id}
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: index * 0.08 }}
+                className="rounded-[24px] border border-[#F0DCD5] bg-white p-5 shadow-[0_8px_30px_rgba(90,40,30,0.06)]"
+              >
+                <div className="flex flex-wrap items-center gap-4">
+                  <img
+                    src={
+                      service?.images?.[0] ||
+                      "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=400&auto=format&fit=crop"
+                    }
+                    alt={service?.serviceName || "Wedding Service"}
+                    className="h-20 w-28 rounded-xl object-cover"
+                  />
 
-              <p className="mt-2 text-sm text-[#6F5E56]">
-                📅 {booking.eventDate} • 📍 {booking.eventLocation}
-              </p>
+                  <div className="min-w-[200px] flex-1">
+                    <p className="font-serif text-lg font-bold text-[#241A17]">
+                      {service?.serviceName || "Wedding Service"}
+                    </p>
+                    <p className="mt-1 text-sm text-[#6F5E56]">
+                      📅 {booking.eventDate} • 📍 {booking.eventLocation}
+                    </p>
+                    {booking.message && (
+                      <p className="mt-1.5 text-sm italic text-[#6F5E56]">
+                        {booking.message}
+                      </p>
+                    )}
+                  </div>
 
-              {booking.message && (
-                <p className="mt-2 text-sm text-[#6F5E56]">
-                  {booking.message}
-                </p>
-              )}
-
-              {booking.status === "pending" && (
-                <div className="mt-4 flex gap-3">
-                  <button
-                    onClick={() => handleStatus(booking._id, "accepted")}
-                    className="rounded-full bg-[#2E7D5B] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
+                  <span
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-bold capitalize ${statusColors[booking.status]}`}
                   >
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => handleStatus(booking._id, "rejected")}
-                    className="rounded-full bg-[#DC2626] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
-                  >
-                    Reject
-                  </button>
+                    {booking.status}
+                  </span>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {booking.status === "pending" && (
+                  <div className="mt-4 flex gap-3 border-t border-[#F7E8E2] pt-4">
+                    <button
+                      onClick={() => handleStatus(booking._id, "accepted")}
+                      className="flex-1 rounded-full bg-[#2E7D5B] py-2.5 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
+                    >
+                      ✓ Accept
+                    </button>
+                    <button
+                      onClick={() => handleStatus(booking._id, "rejected")}
+                      className="flex-1 rounded-full bg-[#DC2626] py-2.5 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
+                    >
+                      ✕ Reject
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>

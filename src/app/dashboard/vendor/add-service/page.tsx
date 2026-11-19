@@ -45,15 +45,31 @@ export default function AddServicePage() {
   };
 
   const uploadToImgBB = async (file: File): Promise<string | null> => {
+    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+
+    if (!apiKey) {
+      setError("ImgBB API key not found. Check your .env.local file.");
+      return null;
+    }
+
     const formData = new FormData();
     formData.append("image", file);
 
-    const res = await fetch(
-      `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
-      { method: "POST", body: formData },
-    );
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: "POST",
+      body: formData,
+    });
+
     const data = await res.json();
-    return data?.data?.url || null;
+
+    if (!res.ok || !data?.data?.url) {
+      setError(
+        data?.error?.message || "Image upload failed. Please try again.",
+      );
+      return null;
+    }
+
+    return data.data.url;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -73,10 +89,7 @@ export default function AddServicePage() {
       }
 
       const imageUrl = await uploadToImgBB(imageFile);
-      if (!imageUrl) {
-        setError("Image upload failed. Please try again.");
-        return;
-      }
+      if (!imageUrl) return;
 
       const serviceData = {
         vendorId: user?.id,
@@ -89,11 +102,14 @@ export default function AddServicePage() {
         images: [imageUrl],
       };
 
-      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(serviceData),
-      });
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(serviceData),
+        },
+      );
 
       const data = await res.json();
 
@@ -114,32 +130,34 @@ export default function AddServicePage() {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-[#E8D5CE] px-4 py-3 text-sm outline-none focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20";
-  const labelClass = "mb-1 block text-sm font-semibold text-[#241A17]";
+    "w-full rounded-xl border border-[#E8D5CE] px-4 py-3.5 text-sm outline-none focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20";
+  const labelClass = "mb-1.5 block text-sm font-semibold text-[#241A17]";
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="font-serif text-3xl font-bold text-[#241A17]">
-        Add Service
-      </h1>
-      <p className="mt-1 text-[#6F5E56]">
-        New services will be pending until admin approval.
-      </p>
+    <div className="mx-auto w-full max-w-3xl">
+      <div className="text-center">
+        <h1 className="font-serif text-3xl font-bold text-[#241A17] sm:text-4xl">
+          Add <span className="italic text-[#C75B5B]">Service</span>
+        </h1>
+        <p className="mt-2 text-[#6F5E56]">
+          New services will be pending until admin approval.
+        </p>
+      </div>
 
       {error && (
-        <p className="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+        <p className="mt-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
           {error}
         </p>
       )}
       {success && (
-        <p className="mt-4 rounded-xl bg-[#E6F4EC] px-4 py-3 text-sm font-medium text-[#2E7D5B]">
+        <p className="mt-5 rounded-xl bg-[#E6F4EC] px-4 py-3 text-sm font-medium text-[#2E7D5B]">
           {success}
         </p>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="mt-6 flex flex-col gap-5 rounded-[20px] border border-[#F0DCD5] bg-white p-6"
+        className="mt-6 flex flex-col gap-6 rounded-[24px] border border-[#F0DCD5] bg-white p-6 shadow-[0_8px_30px_rgba(90,40,30,0.06)] sm:p-8"
       >
         <div>
           <label className={labelClass}>Service Name</label>
@@ -180,7 +198,7 @@ export default function AddServicePage() {
           <textarea
             name="description"
             required
-            rows={4}
+            rows={5}
             placeholder="Describe your service..."
             className={inputClass}
           />
@@ -204,7 +222,7 @@ export default function AddServicePage() {
             <img
               src={imagePreview}
               alt="Preview"
-              className="mb-3 h-40 w-full rounded-xl object-cover"
+              className="mb-3 h-52 w-full rounded-xl object-cover"
             />
           )}
           <input
@@ -213,9 +231,9 @@ export default function AddServicePage() {
             accept="image/*"
             required
             onChange={handleImageChange}
-            className="w-full rounded-xl border border-[#E8D5CE] px-3 py-2 text-sm text-[#6F5E56] file:mr-3 file:rounded-full file:border-0 file:bg-[#FDECEA] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#C75B5B]"
+            className="w-full rounded-xl border border-[#E8D5CE] px-3 py-2.5 text-sm text-[#6F5E56] file:mr-3 file:rounded-full file:border-0 file:bg-[#FDECEA] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#C75B5B]"
           />
-          <p className="mt-1 text-xs text-[#A08D84]">
+          <p className="mt-1.5 text-xs text-[#A08D84]">
             Image will be uploaded with ImgBB.
           </p>
         </div>
@@ -223,7 +241,7 @@ export default function AddServicePage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-full bg-[#C75B5B] py-3.5 text-sm font-semibold text-white transition hover:bg-[#B04A4A] disabled:opacity-70"
+          className="w-full rounded-full bg-[#C75B5B] py-4 text-sm font-semibold text-white transition hover:bg-[#B04A4A] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? "Submitting..." : "Submit Service"}
         </button>

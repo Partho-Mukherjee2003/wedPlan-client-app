@@ -39,6 +39,12 @@ const menus: Record<string, { name: string; href: string }[]> = {
   ],
 };
 
+const roleStyles: Record<string, string> = {
+  vendor: "bg-[#FDECEA] text-[#C75B5B] ring-[#F9DCDC]",
+  customer: "bg-[#E6F4EC] text-[#2E7D5B] ring-[#C8E6D5]",
+  admin: "bg-[#241A17] text-[#C9A86A] ring-[#241A17]",
+};
+
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2">
@@ -98,19 +104,57 @@ export default function DashboardSidebar({ user }: { user: UserType }) {
   });
 
   const profileCard = (
-    <div className="flex items-center gap-3 rounded-2xl bg-[#FFF9F5] p-3 ring-1 ring-[#F0DCD5]">
-      <Image
-        width={48}
-        height={48}
-        src={user.image || "https://randomuser.me/api/portraits/lego/1.jpg"}
-        alt={user.name}
-        className="h-12 w-12 rounded-full object-cover ring-2 ring-[#F0DCD5]"
-      />
+    <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#FFF9F5] to-[#FDECEA] p-3 ring-1 ring-[#F0DCD5]">
+      <motion.div
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="shrink-0"
+      >
+        <Image
+          width={48}
+          height={48}
+          src={user.image || "https://randomuser.me/api/portraits/lego/1.jpg"}
+          alt={user.name}
+          className="h-12 w-12 rounded-full object-cover ring-2 ring-[#C75B5B]/40"
+        />
+      </motion.div>
       <div className="min-w-0">
         <p className="truncate font-semibold text-[#241A17]">{user.name}</p>
-        <p className="text-xs capitalize text-[#A08D84]">
-          {user.role} • {user.subscriptionPlan} Plan
-        </p>
+
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          {/* Role badge */}
+          <motion.span
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ring-1 ${roleStyles[user.role] || roleStyles.customer}`}
+          >
+            {user.role}
+          </motion.span>
+
+          {/* Plan badge */}
+          {user.subscriptionPlan === "premium" ? (
+            <motion.span
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                scale: [1, 1.06, 1],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, #C9A86A, #EADFC6, #C9A86A)",
+                backgroundSize: "200% auto",
+              }}
+              className="rounded-full px-2.5 py-0.5 text-[11px] font-bold text-[#241A17] shadow-[0_4px_14px_rgba(201,168,106,0.45)]"
+            >
+              ★ Premium
+            </motion.span>
+          ) : (
+            <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold text-[#A08D84] ring-1 ring-[#E8D5CE]">
+              Free Plan
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

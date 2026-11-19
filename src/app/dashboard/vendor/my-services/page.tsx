@@ -42,7 +42,9 @@ export default function MyServicesPage() {
   const reloadServices = async () => {
     if (!userId) return;
     try {
-      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
+      );
       const data = await res.json();
       setServices(
         Array.isArray(data)
@@ -61,7 +63,9 @@ export default function MyServicesPage() {
 
     const loadData = async () => {
       try {
-        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
+        const res = await fetch(
+          `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
+        );
         const data = await res.json();
         setServices(
           Array.isArray(data)
@@ -82,9 +86,7 @@ export default function MyServicesPage() {
     try {
       await fetch(
         `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}?vendorId=${userId}`,
-        {
-          method: "DELETE",
-        },
+        { method: "DELETE" },
       );
       reloadServices();
     } catch {
@@ -100,18 +102,21 @@ export default function MyServicesPage() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vendorId: userId,
-          serviceName: String(formData.get("serviceName")),
-          category: String(formData.get("category")),
-          description: String(formData.get("description")),
-          price: Number(formData.get("price")),
-          location: String(formData.get("location")),
-        }),
-      });
+      await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vendorId: userId,
+            serviceName: String(formData.get("serviceName")),
+            category: String(formData.get("category")),
+            description: String(formData.get("description")),
+            price: Number(formData.get("price")),
+            location: String(formData.get("location")),
+          }),
+        },
+      );
       setEditingId(null);
       reloadServices();
     } catch {
@@ -124,7 +129,7 @@ export default function MyServicesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3 py-20">
         <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#F3D9D0] border-t-[#C75B5B]" />
         <p className="text-[#6F5E56]">Loading services...</p>
       </div>
@@ -132,48 +137,54 @@ export default function MyServicesPage() {
   }
 
   return (
-    <div>
-      <h1 className="font-serif text-3xl font-bold text-[#241A17]">
-        My Services
-      </h1>
+    <div className="mx-auto w-full max-w-6xl">
+      <div className="text-center">
+        <h1 className="font-serif text-3xl font-bold text-[#241A17] sm:text-4xl">
+          My <span className="italic text-[#C75B5B]">Services</span>
+        </h1>
+        <p className="mt-2 text-[#6F5E56]">
+          You have {services.length} service{services.length !== 1 ? "s" : ""}{" "}
+          in total.
+        </p>
+      </div>
 
       {error && (
-        <p className="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+        <p className="mx-auto mt-5 max-w-xl rounded-xl bg-[#FDECEC] px-4 py-3 text-center text-sm font-medium text-[#DC2626]">
           {error}
         </p>
       )}
 
       {services.length === 0 ? (
-        <p className="mt-6 rounded-[20px] border border-[#F0DCD5] bg-white p-8 text-center text-[#6F5E56]">
+        <p className="mx-auto mt-8 max-w-xl rounded-[20px] border border-[#F0DCD5] bg-white p-8 text-center text-[#6F5E56]">
           You have not added any service yet.
         </p>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-6">
           {services.map((service) => (
             <div
               key={service._id}
-              className="overflow-hidden rounded-[20px] border border-[#F0DCD5] bg-white"
+              className="w-full max-w-sm overflow-hidden rounded-[24px] border border-[#F0DCD5] bg-white shadow-[0_8px_30px_rgba(90,40,30,0.06)] transition hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(199,91,91,0.12)]"
             >
               <img
                 src={service.images?.[0]}
                 alt={service.serviceName}
-                className="h-44 w-full object-cover"
+                className="h-48 w-full object-cover"
               />
               <div className="p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="font-semibold text-[#241A17]">
+                  <p className="font-serif text-lg font-bold text-[#241A17]">
                     {service.serviceName}
                   </p>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusColors[service.status]}`}
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold capitalize ${statusColors[service.status]}`}
                   >
                     {service.status}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-[#6F5E56]">
+                <p className="mt-1.5 text-sm text-[#6F5E56]">
                   {service.category} • 📍 {service.location}
                 </p>
-                <p className="mt-2 font-serif text-xl font-bold text-[#C75B5B]">
+                <p className="mt-2 font-serif text-2xl font-bold text-[#C75B5B]">
                   ৳{service.price.toLocaleString()}
                 </p>
 
@@ -184,13 +195,13 @@ export default function MyServicesPage() {
                         editingId === service._id ? null : service._id,
                       )
                     }
-                    className="flex-1 rounded-full bg-[#FDECEA] py-2 text-xs font-semibold text-[#C75B5B]"
+                    className="flex-1 rounded-full bg-[#FDECEA] py-2.5 text-xs font-semibold text-[#C75B5B] transition hover:bg-[#F9DCDC]"
                   >
                     {editingId === service._id ? "Cancel" : "Update"}
                   </button>
                   <button
                     onClick={() => handleDelete(service._id)}
-                    className="flex-1 rounded-full bg-[#FDECEC] py-2 text-xs font-semibold text-[#DC2626]"
+                    className="flex-1 rounded-full bg-[#FDECEC] py-2.5 text-xs font-semibold text-[#DC2626] transition hover:bg-[#FBD5D5]"
                   >
                     Delete
                   </button>
@@ -246,7 +257,7 @@ export default function MyServicesPage() {
                     />
                     <button
                       type="submit"
-                      className="rounded-full bg-[#C75B5B] py-2.5 text-xs font-semibold text-white"
+                      className="rounded-full bg-[#C75B5B] py-2.5 text-xs font-semibold text-white transition hover:bg-[#B04A4A]"
                     >
                       Save Changes
                     </button>
