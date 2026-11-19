@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ServiceType } from "@/app/Components/service";
+import { ServiceType } from "@/app/Components/Service";
 
 const vendorNames: Record<string, string> = {
   user_vendor_01: "Dream Wedding Studio",

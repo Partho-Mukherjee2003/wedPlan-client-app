@@ -3,8 +3,6 @@ import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
-import HowWedPlanWorks from "./Components/HowWedPlanWorks";
-import CustomerTestimonials from "./Components/CustomerTestimonials";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -35,8 +33,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-[#FFF9F5] text-[#241A17]">
         <Navbar />
         <main className="flex-1">{children}</main>
-        <HowWedPlanWorks/>
-        <CustomerTestimonials/>
+
         <Footer/>
       </body>
     </html>

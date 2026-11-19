@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ServiceDetails from "@/app/Components/ServiceDetails";
-import { ServiceType } from "@/app/Components/service";
+import { ServiceType } from "@/app/Components/Service";
 
 export default async function ServiceDetailsPage({
   params,

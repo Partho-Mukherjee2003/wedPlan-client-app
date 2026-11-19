@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 // Type for one service - from database
@@ -40,7 +41,7 @@ export default function Service({ service }: ServiceProps) {
     <div className="group overflow-hidden rounded-[24px] border border-[#F0DCD5] bg-white shadow-[0_8px_30px_rgba(90,40,30,0.06)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_40px_rgba(199,91,91,0.15)]">
       {/* Image */}
       <div className="relative overflow-hidden">
-        <img
+        <Image
           src={service.images?.[0]}
           alt={service.serviceName}
           className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-110"
