@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ServiceType } from "@/app/Components/Service";
+import Image from "next/image";
 
 const statusColors: Record<ServiceType["status"], string> = {
   approved: "bg-green-100 text-green-700",
@@ -123,7 +124,9 @@ export default function ManageServicesPage() {
               key={service._id}
               className="flex flex-wrap items-center gap-4 rounded-[20px] border border-[#F0DCD5] bg-white p-4"
             >
-              <img
+              <Image
+                width={112}
+                height={80}
                 src={service.images?.[0]}
                 alt={service.serviceName}
                 className="h-20 w-28 rounded-xl object-cover"

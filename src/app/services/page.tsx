@@ -13,6 +13,18 @@ const categories = [
   "Wedding Fashion",
 ];
 
+const locations = [
+  "All Locations",
+  "Dhaka",
+  "Chattogram",
+  "Sylhet",
+  "Khulna",
+  "Rajshahi",
+  "Barishal",
+  "Rangpur",
+  "Mymensingh",
+];
+
 export default function BrowseServicesPage() {
   const [services, setServices] = useState<ServiceType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,43 +34,35 @@ export default function BrowseServicesPage() {
   const [location, setLocation] = useState("All Locations");
 
   // Load services from backend
-useEffect(() => {
-  // URL theke category poro - jemon /services?category=Wedding%20Venues
-  const params = new URLSearchParams(window.location.search);
-  const categoryFromUrl = params.get("category");
-  if (categoryFromUrl) {
-    setCategory(categoryFromUrl);
-  }
-
-  const loadServices = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/services");
-      const data: ServiceType[] = await res.json();
-      // PDF rule: only approved services
-      setServices(data.filter((s) => s.status === "approved"));
-    } catch {
-      setServices([]);
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    // URL theke category poro - jemon /services?category=Wedding%20Venues
+    const params = new URLSearchParams(window.location.search);
+    const categoryFromUrl = params.get("category");
+    if (categoryFromUrl) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCategory(categoryFromUrl);
     }
-  };
-  loadServices();
-}, []);
 
-
-  // Unique locations from data - Dhaka, Chattogram, etc.
-  const locations = [
-    "All Locations",
-    "Dhaka",
-    "Chattogram",
-    "Sylhet",
-    "Khulna",
-    "Rajshahi",
-    "Barishal",
-    "Rangpur",
-    "Mymensingh",
-  ];
-
+    const loadServices = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/services");
+        const data = await res.json();
+        // PDF rule: only approved services
+        setServices(
+          Array.isArray(data)
+            ? data.filter(
+                (service: ServiceType) => service.status === "approved",
+              )
+            : [],
+        );
+      } catch {
+        setServices([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadServices();
+  }, []);
 
   // Search + Filter - simple chain
   const filteredServices = services.filter((service) => {

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ServiceDetails from "@/app/Components/ServiceDetails";
 import { ServiceType } from "@/app/Components/Service";
+export const dynamic = "force-dynamic";
 
 export default async function ServiceDetailsPage({
   params,

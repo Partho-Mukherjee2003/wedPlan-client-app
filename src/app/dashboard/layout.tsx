@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import DashboardSidebar from "@/app/Components/DashboardSidebar";
 
+export const dynamic = "force-dynamic"; // ← ei line ta add koro
+
 type UserType = {
   id: string;
   name: string;

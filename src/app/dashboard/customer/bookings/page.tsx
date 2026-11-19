@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
+import Image from "next/image";
 
 type BookingType = {
   _id: string;
@@ -175,7 +176,9 @@ export default function MyBookingsPage() {
                 className="rounded-[20px] border border-[#F0DCD5] bg-white p-4"
               >
                 <div className="flex flex-wrap items-center gap-4">
-                  <img
+                  <Image
+                  width={112}
+                  height={80}
                     src={
                       service?.images?.[0] ||
                       "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=400&auto=format&fit=crop"
