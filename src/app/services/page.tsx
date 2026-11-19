@@ -22,21 +22,29 @@ export default function BrowseServicesPage() {
   const [location, setLocation] = useState("All Locations");
 
   // Load services from backend
-  useEffect(() => {
-    const loadServices = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/services");
-        const data: ServiceType[] = await res.json();
-        // PDF rule: only approved services
-        setServices(data.filter((s) => s.status === "approved"));
-      } catch {
-        setServices([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadServices();
-  }, []);
+useEffect(() => {
+  // URL theke category poro - jemon /services?category=Wedding%20Venues
+  const params = new URLSearchParams(window.location.search);
+  const categoryFromUrl = params.get("category");
+  if (categoryFromUrl) {
+    setCategory(categoryFromUrl);
+  }
+
+  const loadServices = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/services");
+      const data: ServiceType[] = await res.json();
+      // PDF rule: only approved services
+      setServices(data.filter((s) => s.status === "approved"));
+    } catch {
+      setServices([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  loadServices();
+}, []);
+
 
   // Unique locations from data - Dhaka, Chattogram, etc.
   const locations = [

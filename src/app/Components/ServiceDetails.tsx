@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ServiceType } from "@/app/Components/Service";
+import Image from "next/image";
 
 const vendorNames: Record<string, string> = {
   user_vendor_01: "Dream Wedding Studio",
@@ -61,8 +62,10 @@ export default function ServiceDetails({ service }: { service: ServiceType }) {
             transition={{ duration: 0.7 }}
           >
             <div className="group overflow-hidden rounded-[28px] shadow-[0_16px_40px_rgba(90,40,30,0.10)]">
-              <img
+              <Image
                 src={service.images?.[0]}
+                height={480}
+                width={600}
                 alt={service.serviceName}
                 className="h-[380px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[480px]"
               />

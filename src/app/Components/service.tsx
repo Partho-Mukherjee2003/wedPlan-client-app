@@ -43,6 +43,8 @@ export default function Service({ service }: ServiceProps) {
       <div className="relative overflow-hidden">
         <Image
           src={service.images?.[0]}
+          width={400}
+          height={300}
           alt={service.serviceName}
           className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
