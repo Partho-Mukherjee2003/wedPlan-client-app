@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-
+import Image from "next/image";
 const categories = [
   {
     name: "Photography & Videography",
@@ -66,7 +66,7 @@ export default function WeddingCategories() {
         </motion.div>
 
         {/* Category cards */}
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category, index) => (
             <motion.div
               key={category.name}
@@ -81,7 +81,9 @@ export default function WeddingCategories() {
                 className="group block overflow-hidden rounded-[24px] border border-[#F0DCD5] bg-white shadow-[0_8px_30px_rgba(90,40,30,0.05)] transition hover:shadow-[0_16px_40px_rgba(199,91,91,0.14)]"
               >
                 <div className="relative overflow-hidden">
-                  <img
+                  <Image
+                    width={400}
+                    height={192}
                     src={category.image}
                     alt={category.name}
                     className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-110"

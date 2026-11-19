@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
-
+import Image from "next/image";
 type BookingType = {
   _id: string;
   serviceId: string;
@@ -206,7 +206,9 @@ export default function MyBookingsPage() {
                 className="rounded-[24px] border border-[#F0DCD5] bg-white p-4 shadow-[0_8px_30px_rgba(90,40,30,0.06)] sm:p-5"
               >
                 <div className="flex flex-wrap items-center gap-4">
-                  <img
+                  <Image
+                    width={112}
+                    height={80}
                     src={
                       service?.images?.[0] ||
                       "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=400&auto=format&fit=crop"
