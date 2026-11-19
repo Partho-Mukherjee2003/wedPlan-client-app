@@ -27,7 +27,7 @@ export default function TransactionsPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/transactions");
+        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/transactions`);
         const data = await res.json();
         setTransactions(Array.isArray(data) ? data : []);
       } catch {

@@ -42,7 +42,7 @@ export default function MyServicesPage() {
   const reloadServices = async () => {
     if (!userId) return;
     try {
-      const res = await fetch("http://localhost:5000/services");
+      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
       const data = await res.json();
       setServices(
         Array.isArray(data)
@@ -61,7 +61,7 @@ export default function MyServicesPage() {
 
     const loadData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/services");
+        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
         const data = await res.json();
         setServices(
           Array.isArray(data)
@@ -81,7 +81,7 @@ export default function MyServicesPage() {
   const handleDelete = async (serviceId: string) => {
     try {
       await fetch(
-        `http://localhost:5000/services/${serviceId}?vendorId=${userId}`,
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}?vendorId=${userId}`,
         {
           method: "DELETE",
         },
@@ -100,7 +100,7 @@ export default function MyServicesPage() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      await fetch(`http://localhost:5000/services/${serviceId}`, {
+      await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

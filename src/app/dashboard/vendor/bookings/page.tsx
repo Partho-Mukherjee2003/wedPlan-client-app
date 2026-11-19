@@ -37,8 +37,8 @@ export default function VendorBookingsPage() {
     if (!userId) return;
     try {
       const [bookingRes, serviceRes] = await Promise.all([
-        fetch(`http://localhost:5000/bookings?vendorId=${userId}`),
-        fetch("http://localhost:5000/services"),
+        fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`),
+        fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
       ]);
       const bookingData = await bookingRes.json();
       const serviceData = await serviceRes.json();
@@ -58,8 +58,8 @@ export default function VendorBookingsPage() {
     const loadData = async () => {
       try {
         const [bookingRes, serviceRes] = await Promise.all([
-          fetch(`http://localhost:5000/bookings?vendorId=${userId}`),
-          fetch("http://localhost:5000/services"),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
         ]);
         const bookingData = await bookingRes.json();
         const serviceData = await serviceRes.json();
@@ -80,7 +80,7 @@ export default function VendorBookingsPage() {
     status: "accepted" | "rejected",
   ) => {
     try {
-      await fetch(`http://localhost:5000/bookings/${bookingId}`, {
+      await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

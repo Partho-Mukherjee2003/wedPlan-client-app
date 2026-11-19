@@ -45,7 +45,7 @@ export default function BrowseServicesPage() {
 
     const loadServices = async () => {
       try {
-        const res = await fetch("http://localhost:5000/services");
+        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
         const data = await res.json();
         // PDF rule: only approved services
         setServices(

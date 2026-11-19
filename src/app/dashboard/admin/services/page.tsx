@@ -18,7 +18,7 @@ export default function ManageServicesPage() {
 
   const reloadServices = async () => {
     try {
-      const res = await fetch("http://localhost:5000/services");
+      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
       const data = await res.json();
       setServices(Array.isArray(data) ? data : []);
     } catch {
@@ -31,7 +31,7 @@ export default function ManageServicesPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/services");
+        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
         const data = await res.json();
         setServices(Array.isArray(data) ? data : []);
       } catch {
@@ -48,7 +48,7 @@ export default function ManageServicesPage() {
     status: "approved" | "rejected",
   ) => {
     try {
-      await fetch(`http://localhost:5000/services/${serviceId}/status`, {
+      await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -62,7 +62,7 @@ export default function ManageServicesPage() {
   const handleDelete = async (serviceId: string, vendorId: string) => {
     try {
       await fetch(
-        `http://localhost:5000/services/${serviceId}?vendorId=${vendorId}`,
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}?vendorId=${vendorId}`,
         {
           method: "DELETE",
         },

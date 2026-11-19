@@ -89,7 +89,7 @@ export default function AddServicePage() {
         images: [imageUrl],
       };
 
-      const res = await fetch("http://localhost:5000/services", {
+      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(serviceData),
