@@ -25,14 +25,7 @@ export default function AdminOverviewPage() {
           fetch("http://localhost:5000/transactions"),
         ]);
 
-        setUsers(
-          Array.isArray(await userRes.json())
-            ? await userRes
-                .clone()
-                .json()
-                .catch(() => [])
-            : [],
-        );
+        setUsers(Array.isArray(await userRes.json()) ? await userRes.clone().json().catch(() => []) : []);
         // Uporer line e problem hole niche r moto alada kore nao:
       } catch {
         setError("Could not load overview data.");
@@ -85,10 +78,7 @@ export default function AdminOverviewPage() {
   const cards = [
     { label: "Total Users", value: users.length },
     { label: "Total Services", value: services.length },
-    {
-      label: "Pending Services",
-      value: services.filter((s) => s.status === "pending").length,
-    },
+    { label: "Pending Services", value: services.filter((s) => s.status === "pending").length },
     { label: "Total Bookings", value: bookings.length },
     { label: "Total Transactions", value: transactions.length },
     { label: "Total Revenue (BDT)", value: totalRevenue.toLocaleString() },
@@ -96,27 +86,16 @@ export default function AdminOverviewPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl font-bold text-[#241A17]">
-        Admin Overview
-      </h1>
+      <h1 className="font-serif text-3xl font-bold text-[#241A17]">Admin Overview</h1>
       <p className="mt-1 text-[#6F5E56]">Platform summary at a glance.</p>
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
-          {error}
-        </p>
-      )}
+      {error && <p className="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">{error}</p>}
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
-          <div
-            key={card.label}
-            className="rounded-[20px] border border-[#F0DCD5] bg-white p-6"
-          >
+          <div key={card.label} className="rounded-[20px] border border-[#F0DCD5] bg-white p-6">
             <p className="text-sm text-[#A08D84]">{card.label}</p>
-            <p className="mt-2 font-serif text-4xl font-bold text-[#C75B5B]">
-              {card.value}
-            </p>
+            <p className="mt-2 font-serif text-4xl font-bold text-[#C75B5B]">{card.value}</p>
           </div>
         ))}
       </div>
