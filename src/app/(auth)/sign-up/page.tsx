@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 import { useRouter } from "next/navigation";
 
@@ -34,9 +35,6 @@ export default function SignUpPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Page e dhuklei form khali kore dao
-
-
   const hasMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
@@ -52,10 +50,14 @@ export default function SignUpPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message ?? "Google sign-up failed.");
+        const message = signUpError.message ?? "Google sign-up failed.";
+        setError(message);
+        toast.error(message);
       }
     } catch {
-      setError("Could not connect to the authentication server.");
+      const message = "Could not connect to the authentication server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -66,9 +68,10 @@ export default function SignUpPage() {
     setError("");
 
     if (!hasMinLength || !hasUppercase || !hasLowercase) {
-      setError(
-        "Password must be at least 8 characters and include uppercase and lowercase letters.",
-      );
+      const message =
+        "Password must be at least 8 characters and include uppercase and lowercase letters.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -87,9 +90,14 @@ export default function SignUpPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message ?? "Account creation failed.");
+        const message = signUpError.message ?? "Account creation failed.";
+        setError(message);
+        toast.error(message);
         return;
       }
+
+      // Success toast
+      toast.success("Account created successfully! Welcome to WedPlan 💍");
 
       // Success holei form reset + redirect
       form.reset();
@@ -98,7 +106,9 @@ export default function SignUpPage() {
       router.push("/");
       router.refresh();
     } catch {
-      setError("Could not connect to the authentication server.");
+      const message = "Could not connect to the authentication server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

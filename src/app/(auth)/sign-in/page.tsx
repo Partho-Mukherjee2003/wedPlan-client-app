@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 
 // Simple flower for decoration
@@ -87,10 +88,14 @@ export default function SignInPage() {
       });
 
       if (signInError) {
-        setError(signInError.message ?? "Google sign-in failed.");
+        const message = signInError.message ?? "Google sign-in failed.";
+        setError(message);
+        toast.error(message);
       }
     } catch {
-      setError("Could not connect to the authentication server.");
+      const message = "Could not connect to the authentication server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -110,9 +115,14 @@ export default function SignInPage() {
       });
 
       if (signInError) {
-        setError(signInError.message ?? "Sign-in failed.");
+        const message = signInError.message ?? "Sign-in failed.";
+        setError(message);
+        toast.error(message);
         return;
       }
+
+      // Login success toast
+      toast.success("Login successful! Welcome back 💍");
 
       // Login success — ekhon role onujayi dashboard e pathao
       const callbackURL = getCallbackURL();
@@ -128,7 +138,9 @@ export default function SignInPage() {
       else if (role === "vendor") router.push("/dashboard/vendor");
       else router.push("/dashboard/customer");
     } catch {
-      setError("Could not connect to the authentication server.");
+      const message = "Could not connect to the authentication server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

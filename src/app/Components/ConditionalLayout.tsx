@@ -1,4 +1,6 @@
 "use client";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { usePathname } from "next/navigation";
 import Navbar from "@/app/Components/Navbar";
@@ -21,6 +23,8 @@ export default function ConditionalLayout({
     <>
       <Navbar />
       <main className="flex-1">{children}</main>
+      <ToastContainer position="top-center" autoClose={3000} theme="light" />
+
       <Footer />
     </>
   );
