@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client"; // change if your path is different
 
 type IconProps = { className?: string };
@@ -98,11 +99,22 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await authClient.signOut();
-    setProfileOpen(false);
-    setMenuOpen(false);
-    router.push("/");
-    router.refresh();
+    try {
+      const { error } = await authClient.signOut();
+
+      if (error) {
+        toast.error(error.message ?? "Logout failed. Please try again.");
+        return;
+      }
+
+      toast.success("Logged out successfully. See you soon 💍");
+      setProfileOpen(false);
+      setMenuOpen(false);
+      router.push("/");
+      router.refresh();
+    } catch {
+      toast.error("Could not connect to the authentication server.");
+    }
   };
 
   const linkClass = (href: string) =>

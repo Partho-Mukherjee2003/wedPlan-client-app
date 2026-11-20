@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
 
@@ -82,34 +83,47 @@ export default function MyServicesPage() {
     loadData();
   }, [userId]);
 
-  const handleDelete = async (serviceId: string) => {
+  const handleDelete = async (service: ServiceType) => {
     try {
-      await fetch(
-        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}?vendorId=${userId}`,
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}?vendorId=${userId}`,
         { method: "DELETE" },
       );
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = data?.message || "Could not delete this service.";
+        setError(message);
+        toast.error(message);
+        return;
+      }
+
+      toast.success(`Service '${service.serviceName}' deleted`);
       reloadServices();
     } catch {
-      setError("Could not delete this service.");
+      const message = "Could not delete this service.";
+      setError(message);
+      toast.error(message);
     }
   };
 
   const handleUpdate = async (
     e: React.FormEvent<HTMLFormElement>,
-    serviceId: string,
+    service: ServiceType,
   ) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const newName = String(formData.get("serviceName"));
 
     try {
-      await fetch(
-        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}`,
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             vendorId: userId,
-            serviceName: String(formData.get("serviceName")),
+            serviceName: newName,
             category: String(formData.get("category")),
             description: String(formData.get("description")),
             price: Number(formData.get("price")),
@@ -117,10 +131,22 @@ export default function MyServicesPage() {
           }),
         },
       );
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = data?.message || "Could not update this service.";
+        setError(message);
+        toast.error(message);
+        return;
+      }
+
+      toast.success(`Service '${newName}' updated successfully`);
       setEditingId(null);
       reloadServices();
     } catch {
-      setError("Could not update this service.");
+      const message = "Could not update this service.";
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -200,7 +226,7 @@ export default function MyServicesPage() {
                     {editingId === service._id ? "Cancel" : "Update"}
                   </button>
                   <button
-                    onClick={() => handleDelete(service._id)}
+                    onClick={() => handleDelete(service)}
                     className="flex-1 rounded-full bg-[#FDECEC] py-2.5 text-xs font-semibold text-[#DC2626] transition hover:bg-[#FBD5D5]"
                   >
                     Delete
@@ -209,7 +235,7 @@ export default function MyServicesPage() {
 
                 {editingId === service._id && (
                   <form
-                    onSubmit={(e) => handleUpdate(e, service._id)}
+                    onSubmit={(e) => handleUpdate(e, service)}
                     className="mt-4 flex flex-col gap-3 border-t border-[#F7E8E2] pt-4"
                   >
                     <input

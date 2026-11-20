@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 
 const categories = [
@@ -48,7 +49,9 @@ export default function AddServicePage() {
     const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
     if (!apiKey) {
-      setError("ImgBB API key not found. Check your .env.local file.");
+      const message = "ImgBB API key not found. Check your .env.local file.";
+      setError(message);
+      toast.error(message);
       return null;
     }
 
@@ -63,12 +66,14 @@ export default function AddServicePage() {
     const data = await res.json();
 
     if (!res.ok || !data?.data?.url) {
-      setError(
-        data?.error?.message || "Image upload failed. Please try again.",
-      );
+      const message =
+        data?.error?.message || "Image upload failed. Please try again.";
+      setError(message);
+      toast.error(message);
       return null;
     }
 
+    toast.success("Image uploaded successfully");
     return data.data.url;
   };
 
@@ -84,7 +89,9 @@ export default function AddServicePage() {
 
     try {
       if (!imageFile || imageFile.size === 0) {
-        setError("Please select a service image.");
+        const message = "Please select a service image.";
+        setError(message);
+        toast.error(message);
         return;
       }
 
@@ -114,16 +121,23 @@ export default function AddServicePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Could not add service.");
+        const message = data.message || "Could not add service.";
+        setError(message);
+        toast.error(message);
         return;
       }
 
       setSuccess("Service submitted! It will be visible after admin approval.");
+      toast.success(
+        `Service '${serviceData.serviceName}' submitted for approval 💍`,
+      );
       form.reset();
       setImagePreview(null);
       setTimeout(() => router.push("/dashboard/vendor/my-services"), 1500);
     } catch {
-      setError("Could not connect to the server.");
+      const message = "Could not connect to the server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

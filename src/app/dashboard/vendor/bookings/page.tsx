@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
@@ -104,31 +105,6 @@ export default function VendorBookingsPage() {
     loadData();
   }, [userId]);
 
-  const handleStatus = async (
-    bookingId: string,
-    status: "accepted" | "rejected",
-  ) => {
-    try {
-      const res = await fetch(
-        `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status, vendorId: userId }),
-        },
-      );
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || "Could not update this booking.");
-        return;
-      }
-      reloadBookings();
-    } catch {
-      setError("Could not update this booking.");
-    }
-  };
-
   const getService = (serviceId: string): ServiceType | undefined =>
     services.find((service) => service._id === serviceId);
 
@@ -147,6 +123,47 @@ export default function VendorBookingsPage() {
       email: dummy?.email || "",
       image: "https://randomuser.me/api/portraits/lego/1.jpg",
     };
+  };
+
+  const handleStatus = async (
+    booking: BookingType,
+    status: "accepted" | "rejected",
+  ) => {
+    const customerName = getCustomer(booking.customerId).name;
+    const serviceName =
+      getService(booking.serviceId)?.serviceName || "this service";
+
+    try {
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${booking._id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status, vendorId: userId }),
+        },
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage = data.message || "Could not update this booking.";
+        setError(errorMessage);
+        toast.error(errorMessage);
+        return;
+      }
+
+      if (status === "accepted") {
+        toast.success(
+          `Booking accepted for ${customerName} — ${serviceName} 💍`,
+        );
+      } else {
+        toast.success(`Booking rejected for ${customerName} — ${serviceName}`);
+      }
+      reloadBookings();
+    } catch {
+      const errorMessage = "Could not update this booking.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    }
   };
 
   const formatDate = (dateString?: string): string => {
@@ -273,13 +290,13 @@ export default function VendorBookingsPage() {
                 {booking.status === "pending" && (
                   <div className="mt-4 flex gap-3 border-t border-[#F7E8E2] pt-4">
                     <button
-                      onClick={() => handleStatus(booking._id, "accepted")}
+                      onClick={() => handleStatus(booking, "accepted")}
                       className="flex-1 rounded-full bg-[#2E7D5B] py-2.5 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
                     >
                       ✓ Accept
                     </button>
                     <button
-                      onClick={() => handleStatus(booking._id, "rejected")}
+                      onClick={() => handleStatus(booking, "rejected")}
                       className="flex-1 rounded-full bg-[#DC2626] py-2.5 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
                     >
                       ✕ Reject

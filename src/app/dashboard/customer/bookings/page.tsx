@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
@@ -104,10 +105,16 @@ export default function MyBookingsPage() {
     loadData();
   }, [userId]);
 
-  const handleCancel = async (bookingId: string) => {
+  const getService = (serviceId: string): ServiceType | undefined =>
+    services.find((service) => service._id === serviceId);
+
+  const handleCancel = async (booking: BookingType) => {
+    const serviceName =
+      getService(booking.serviceId)?.serviceName || "this service";
+
     try {
       const res = await fetch(
-        `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`,
+        `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${booking._id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -117,17 +124,20 @@ export default function MyBookingsPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.message || "Could not cancel this booking.");
+        const errorMessage = data.message || "Could not cancel this booking.";
+        setError(errorMessage);
+        toast.error(errorMessage);
         return;
       }
+
+      toast.success(`Booking cancelled for ${serviceName}`);
       reloadBookings();
     } catch {
-      setError("Could not cancel this booking.");
+      const errorMessage = "Could not cancel this booking.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
-
-  const getService = (serviceId: string): ServiceType | undefined =>
-    services.find((service) => service._id === serviceId);
 
   const getVendorName = (vendorId: string): string => {
     if (vendorNames[vendorId]) return vendorNames[vendorId];
@@ -250,7 +260,7 @@ export default function MyBookingsPage() {
                     </button>
                     {booking.status === "pending" && (
                       <button
-                        onClick={() => handleCancel(booking._id)}
+                        onClick={() => handleCancel(booking)}
                         className="rounded-full bg-[#FDECEC] px-4 py-2 text-xs font-semibold text-[#DC2626] transition hover:bg-[#FBD5D5]"
                       >
                         Cancel

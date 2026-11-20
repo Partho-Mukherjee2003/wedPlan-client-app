@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
 
@@ -53,12 +54,12 @@ export default function ManageServicesPage() {
   }, []);
 
   const handleStatus = async (
-    serviceId: string,
+    service: ServiceType,
     status: "approved" | "rejected",
   ) => {
     try {
       const res = await fetch(
-        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}/status`,
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}/status`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -66,25 +67,48 @@ export default function ManageServicesPage() {
         },
       );
 
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setError("Could not update this service.");
+        const message = data?.message || "Could not update this service.";
+        setError(message);
+        toast.error(message);
         return;
+      }
+
+      if (status === "approved") {
+        toast.success(`'${service.serviceName}' is now live 💍`);
+      } else {
+        toast.success(`'${service.serviceName}' has been rejected`);
       }
       reloadServices();
     } catch {
-      setError("Could not update this service.");
+      const message = "Could not update this service.";
+      setError(message);
+      toast.error(message);
     }
   };
 
-  const handleDelete = async (serviceId: string) => {
+  const handleDelete = async (service: ServiceType) => {
     try {
-      await fetch(
-        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}`,
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}`,
         { method: "DELETE" },
       );
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = data?.message || "Could not delete this service.";
+        setError(message);
+        toast.error(message);
+        return;
+      }
+
+      toast.success(`Service '${service.serviceName}' deleted`);
       reloadServices();
     } catch {
-      setError("Could not delete this service.");
+      const message = "Could not delete this service.";
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -212,13 +236,13 @@ export default function ManageServicesPage() {
                 {service.status === "pending" && (
                   <>
                     <button
-                      onClick={() => handleStatus(service._id, "approved")}
+                      onClick={() => handleStatus(service, "approved")}
                       className="rounded-full bg-[#2E7D5B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
                     >
                       ✓ Approve
                     </button>
                     <button
-                      onClick={() => handleStatus(service._id, "rejected")}
+                      onClick={() => handleStatus(service, "rejected")}
                       className="rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
                     >
                       ✕ Reject
@@ -229,7 +253,7 @@ export default function ManageServicesPage() {
                 {/* Approved (published): Reject kore unpublish kora jabe */}
                 {service.status === "approved" && (
                   <button
-                    onClick={() => handleStatus(service._id, "rejected")}
+                    onClick={() => handleStatus(service, "rejected")}
                     className="rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
                   >
                     ✕ Reject
@@ -239,7 +263,7 @@ export default function ManageServicesPage() {
                 {/* Rejected: abar Approve kora jabe */}
                 {service.status === "rejected" && (
                   <button
-                    onClick={() => handleStatus(service._id, "approved")}
+                    onClick={() => handleStatus(service, "approved")}
                     className="rounded-full bg-[#2E7D5B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
                   >
                     ✓ Approve
@@ -247,7 +271,7 @@ export default function ManageServicesPage() {
                 )}
 
                 <button
-                  onClick={() => handleDelete(service._id)}
+                  onClick={() => handleDelete(service)}
                   className="rounded-full bg-[#FDECEC] px-4 py-2 text-xs font-semibold text-[#DC2626] transition hover:bg-[#FBD5D5]"
                 >
                   Delete

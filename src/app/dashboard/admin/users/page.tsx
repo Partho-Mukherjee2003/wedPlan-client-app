@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 type AdminUser = {
   _id?: string;
@@ -63,18 +64,36 @@ export default function ManageUsersPage() {
     const userId = user._id || user.id;
     if (!userId) return;
 
+    const willBlock = !user.isBlocked;
+
     try {
-      await fetch(
+      const res = await fetch(
         `${process.env.SERVER_URL || "http://localhost:5000"}/users/${userId}/block`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isBlocked: !user.isBlocked }),
+          body: JSON.stringify({ isBlocked: willBlock }),
         },
       );
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = data?.message || "Could not update this user.";
+        setError(message);
+        toast.error(message);
+        return;
+      }
+
+      if (willBlock) {
+        toast.success(`${user.name} has been blocked`);
+      } else {
+        toast.success(`${user.name} has been unblocked`);
+      }
       reloadUsers();
     } catch {
-      setError("Could not update this user.");
+      const message = "Could not update this user.";
+      setError(message);
+      toast.error(message);
     }
   };
 

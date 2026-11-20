@@ -86,7 +86,7 @@ export default function SignUpPage() {
         email: String(formData.get("email")),
         password,
         role,
-        callbackURL: "/",
+        
       });
 
       if (signUpError) {

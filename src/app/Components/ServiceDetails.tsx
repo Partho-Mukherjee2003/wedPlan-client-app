@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { ServiceType } from "@/app/Components/Service";
 import { authClient } from "@/app/lib/auth-client";
 import Image from "next/image";
@@ -167,14 +168,22 @@ export default function ServiceDetails({ service }: { service: ServiceType }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Could not send your booking request.");
+        const errorMessage =
+          data.message || "Could not send your booking request.";
+        setError(errorMessage);
+        toast.error(errorMessage);
         return;
       }
 
       setMessage("Booking request sent! The vendor will review it soon.");
+      toast.success(
+        `Booking request sent for ${service.serviceName} 💍 The vendor will review it soon.`,
+      );
       setShowForm(false);
     } catch {
-      setError("Something went wrong. Please try again.");
+      const errorMessage = "Something went wrong. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }

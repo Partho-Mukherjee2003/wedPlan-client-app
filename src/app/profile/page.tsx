@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 
 type UserType = {
@@ -21,13 +21,19 @@ type UserType = {
   subscriptionExpiresAt?: Date | string | null;
 };
 
-
-
 function Flower({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
       {[0, 72, 144, 216, 288].map((deg) => (
-        <ellipse key={deg} cx="20" cy="10" rx="6" ry="9" fill="currentColor" transform={`rotate(${deg} 20 20)`} />
+        <ellipse
+          key={deg}
+          cx="20"
+          cy="10"
+          rx="6"
+          ry="9"
+          fill="currentColor"
+          transform={`rotate(${deg} 20 20)`}
+        />
       ))}
       <circle cx="20" cy="20" r="4.5" fill="#C9A86A" />
     </svg>
@@ -50,31 +56,37 @@ export default function ProfilePage() {
     if (file) setImagePreview(URL.createObjectURL(file));
   };
 
-const uploadToImgBB = async (file: File): Promise<string | null> => {
-  const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+  const uploadToImgBB = async (file: File): Promise<string | null> => {
+    const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
-  if (!apiKey) {
-    setError("ImgBB API key not found. Check your .env.local file.");
-    return null;
-  }
+    if (!apiKey) {
+      const message = "ImgBB API key not found. Check your .env.local file.";
+      setError(message);
+      toast.error(message);
+      return null;
+    }
 
-  const formData = new FormData();
-  formData.append("image", file);
+    const formData = new FormData();
+    formData.append("image", file);
 
-  const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-    method: "POST",
-    body: formData,
-  });
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: "POST",
+      body: formData,
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok || !data?.data?.url) {
-    setError(data?.error?.message || "Image upload failed. Please try again.");
-    return null;
-  }
+    if (!res.ok || !data?.data?.url) {
+      const message =
+        data?.error?.message || "Image upload failed. Please try again.";
+      setError(message);
+      toast.error(message);
+      return null;
+    }
 
-  return data.data.url;
-};
+    toast.success("Image uploaded successfully");
+    return data.data.url;
+  };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -101,15 +113,20 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
       });
 
       if (updateError) {
-        setError(updateError.message ?? "Profile update failed.");
+        const message = updateError.message ?? "Profile update failed.";
+        setError(message);
+        toast.error(message);
         return;
       }
 
       setSuccess("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setShowForm(false);
       setImagePreview(null);
     } catch {
-      setError("Could not connect to the authentication server.");
+      const message = "Could not connect to the authentication server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +138,9 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
       <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-[#FFF9F5]">
         <div className="text-center">
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-[3px] border-[#F3D9D0] border-t-[#C75B5B]" />
-          <p className="mt-4 text-sm font-medium text-[#6F5E56]">Loading profile...</p>
+          <p className="mt-4 text-sm font-medium text-[#6F5E56]">
+            Loading profile...
+          </p>
         </div>
       </section>
     );
@@ -132,8 +151,12 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
     return (
       <section className="bg-[#FFF9F5] py-20">
         <div className="mx-auto w-full max-w-md px-4 text-center">
-          <h1 className="font-serif text-3xl font-bold text-[#241A17]">Please Sign In</h1>
-          <p className="mt-3 text-[#6F5E56]">You need to sign in to view your profile.</p>
+          <h1 className="font-serif text-3xl font-bold text-[#241A17]">
+            Please Sign In
+          </h1>
+          <p className="mt-3 text-[#6F5E56]">
+            You need to sign in to view your profile.
+          </p>
         </div>
       </section>
     );
@@ -145,7 +168,6 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
       <Flower className="absolute -right-6 bottom-10 h-28 w-28 text-[#FDECEA]" />
 
       <div className="relative mx-auto w-full max-w-3xl px-4 sm:px-6">
-
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -177,7 +199,11 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                src={imagePreview || user.image || "https://randomuser.me/api/portraits/lego/1.jpg"}
+                src={
+                  imagePreview ||
+                  user.image ||
+                  "https://randomuser.me/api/portraits/lego/1.jpg"
+                }
                 alt={user.name}
                 className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-md sm:h-28 sm:w-28"
               />
@@ -199,29 +225,47 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
             {/* Info grid */}
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-2xl bg-[#FFF9F5] p-4">
-                <p className="text-xs font-bold tracking-widest text-[#A08D84]">FULL NAME</p>
+                <p className="text-xs font-bold tracking-widest text-[#A08D84]">
+                  FULL NAME
+                </p>
                 <p className="mt-1 font-semibold text-[#241A17]">{user.name}</p>
               </div>
               <div className="rounded-2xl bg-[#FFF9F5] p-4">
-                <p className="text-xs font-bold tracking-widest text-[#A08D84]">EMAIL</p>
-                <p className="mt-1 font-semibold text-[#241A17]">{user.email}</p>
+                <p className="text-xs font-bold tracking-widest text-[#A08D84]">
+                  EMAIL
+                </p>
+                <p className="mt-1 font-semibold text-[#241A17]">
+                  {user.email}
+                </p>
               </div>
               <div className="rounded-2xl bg-[#FFF9F5] p-4">
-                <p className="text-xs font-bold tracking-widest text-[#A08D84]">ROLE</p>
-                <p className="mt-1 font-semibold capitalize text-[#241A17]">{user.role || "Customer"}</p>
+                <p className="text-xs font-bold tracking-widest text-[#A08D84]">
+                  ROLE
+                </p>
+                <p className="mt-1 font-semibold capitalize text-[#241A17]">
+                  {user.role || "Customer"}
+                </p>
               </div>
               <div className="rounded-2xl bg-[#FFF9F5] p-4">
-                <p className="text-xs font-bold tracking-widest text-[#A08D84]">SUBSCRIPTION</p>
-                <p className="mt-1 font-semibold capitalize text-[#241A17]">{user.subscriptionPlan || "Free"}</p>
+                <p className="text-xs font-bold tracking-widest text-[#A08D84]">
+                  SUBSCRIPTION
+                </p>
+                <p className="mt-1 font-semibold capitalize text-[#241A17]">
+                  {user.subscriptionPlan || "Free"}
+                </p>
               </div>
             </div>
 
             {/* Success / Error */}
             {error && (
-              <p className="mt-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">{error}</p>
+              <p className="mt-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+                {error}
+              </p>
             )}
             {success && (
-              <p className="mt-5 rounded-xl bg-[#E6F4EC] px-4 py-3 text-sm font-medium text-[#2E7D5B]">{success}</p>
+              <p className="mt-5 rounded-xl bg-[#E6F4EC] px-4 py-3 text-sm font-medium text-[#2E7D5B]">
+                {success}
+              </p>
             )}
 
             {/* Update Button */}
@@ -248,9 +292,11 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
                   className="overflow-hidden"
                 >
                   <div className="mt-8 flex flex-col gap-5 border-t border-[#F7E8E2] pt-8">
-
                     <div>
-                      <label htmlFor="name" className="mb-1 block text-sm font-semibold text-[#241A17]">
+                      <label
+                        htmlFor="name"
+                        className="mb-1 block text-sm font-semibold text-[#241A17]"
+                      >
                         Full Name
                       </label>
                       <input
@@ -264,12 +310,19 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
                     </div>
 
                     <div>
-                      <label htmlFor="image" className="mb-1 block text-sm font-semibold text-[#241A17]">
+                      <label
+                        htmlFor="image"
+                        className="mb-1 block text-sm font-semibold text-[#241A17]"
+                      >
                         Profile Image
                       </label>
                       <div className="flex items-center gap-3">
                         {imagePreview && (
-                          <img src={imagePreview} alt="Preview" className="h-12 w-12 rounded-full object-cover ring-2 ring-[#F0DCD5]" />
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="h-12 w-12 rounded-full object-cover ring-2 ring-[#F0DCD5]"
+                          />
                         )}
                         <input
                           id="image"
@@ -280,12 +333,15 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
                           className="w-full rounded-xl border border-[#E8D5CE] px-3 py-2 text-sm text-[#6F5E56] file:mr-3 file:rounded-full file:border-0 file:bg-[#FDECEA] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#C75B5B]"
                         />
                       </div>
-                      <p className="mt-1 text-xs text-[#A08D84]">Image will be uploaded with ImgBB.</p>
+                      <p className="mt-1 text-xs text-[#A08D84]">
+                        Image will be uploaded with ImgBB.
+                      </p>
                     </div>
 
                     {/* Email, Role, Plan - change kora jabe na, PDF rule */}
                     <div className="rounded-xl bg-[#FFF9F5] px-4 py-3 text-xs text-[#A08D84]">
-                      Email, Role and Subscription Plan cannot be changed from here.
+                      Email, Role and Subscription Plan cannot be changed from
+                      here.
                     </div>
 
                     <button
@@ -295,12 +351,10 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
                     >
                       {isLoading ? "Updating..." : "Save Changes"}
                     </button>
-
                   </div>
                 </motion.form>
               )}
             </AnimatePresence>
-
           </div>
         </motion.div>
       </div>
