@@ -9,7 +9,15 @@ if (!mongoUri) {
   throw new Error("MONGODB_URI is not set.");
 }
 
-const client = new MongoClient(mongoUri);
+// MongoClient global cache e rakho — Vercel serverless e ek-i
+// client reuse hobe, "Topology is closed" error asbe na
+const globalForMongo = globalThis as unknown as {
+  mongoClient?: MongoClient;
+};
+
+const client = globalForMongo.mongoClient ?? new MongoClient(mongoUri);
+globalForMongo.mongoClient = client;
+
 const db = client.db("WedPlan");
 
 export const auth = betterAuth({
