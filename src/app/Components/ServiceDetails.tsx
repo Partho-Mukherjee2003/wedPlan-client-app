@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ServiceType } from "@/app/Components/Service";
 import { authClient } from "@/app/lib/auth-client";
 import Image from "next/image";
+import { toast } from "react-toastify";
 type VendorType = {
   _id?: string;
   id?: string;
@@ -168,13 +169,16 @@ export default function ServiceDetails({ service }: { service: ServiceType }) {
 
       if (!res.ok) {
         setError(data.message || "Could not send your booking request.");
+        toast.error(data.message || "Could not send your booking request.");
         return;
       }
 
       setMessage("Booking request sent! The vendor will review it soon.");
+      toast.success(`Booking request sent for ${service.serviceName} 💍`);
       setShowForm(false);
-    } catch {
+    } catch (error) {
       setError("Something went wrong. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }

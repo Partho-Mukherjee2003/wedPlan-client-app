@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/app/lib/auth-client";
+import { toast } from "react-toastify";
 
 const categories = [
   "Photography & Videography",
@@ -85,6 +86,7 @@ export default function AddServicePage() {
     try {
       if (!imageFile || imageFile.size === 0) {
         setError("Please select a service image.");
+        toast.error("Please select a service image.");
         return;
       }
 
@@ -115,15 +117,18 @@ export default function AddServicePage() {
 
       if (!res.ok) {
         setError(data.message || "Could not add service.");
+        toast.error(data.message || "Could not add service.");
         return;
       }
 
       setSuccess("Service submitted! It will be visible after admin approval.");
+      toast.success(`Service '${String(formData.get("serviceName"))}' submitted for approval`);
       form.reset();
       setImagePreview(null);
       setTimeout(() => router.push("/dashboard/vendor/my-services"), 1500);
-    } catch {
+    } catch (error) {
       setError("Could not connect to the server.");
+      toast.error(error instanceof Error ? error.message : "Could not connect to the server.");
     } finally {
       setIsLoading(false);
     }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { authClient } from "@/app/lib/auth-client";
+import { toast } from "react-toastify";
 
 type UserType = {
   id: string;
@@ -87,14 +88,17 @@ export default function SubscriptionPage() {
 
       if (!res.ok || !data.url) {
         setError(data.message || "Could not start payment. Please try again.");
+        toast.error(data.message || "Could not start payment. Please try again.");
         setUpgrading(false);
         return;
       }
 
       // Stripe er payment page e pathiye dao
+      toast.info("Redirecting to secure payment...");
       window.location.href = data.url;
-    } catch {
+    } catch (error) {
       setError("Could not start payment. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Could not start payment. Please try again.");
       setUpgrading(false);
     }
   };

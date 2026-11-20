@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 const statusColors: Record<ServiceType["status"], string> = {
   approved: "bg-green-100 text-green-700",
@@ -55,6 +56,7 @@ export default function ManageServicesPage() {
   const handleStatus = async (
     serviceId: string,
     status: "approved" | "rejected",
+    serviceName: string,
   ) => {
     try {
       const res = await fetch(
@@ -66,25 +68,43 @@ export default function ManageServicesPage() {
         },
       );
 
+      const data = await res.json();
       if (!res.ok) {
-        setError("Could not update this service.");
+        const message = data.message || "Could not update this service.";
+        setError(message);
+        toast.error(message);
         return;
       }
+      toast.success(
+        status === "approved"
+          ? `'${serviceName}' is now live`
+          : `'${serviceName}' has been rejected`,
+      );
       reloadServices();
-    } catch {
+    } catch (error) {
       setError("Could not update this service.");
+      toast.error(error instanceof Error ? error.message : "Could not update this service.");
     }
   };
 
   const handleDelete = async (serviceId: string) => {
     try {
-      await fetch(
+      const res = await fetch(
         `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}`,
         { method: "DELETE" },
       );
+      const data = await res.json();
+      if (!res.ok) {
+        const message = data.message || "Could not delete this service.";
+        setError(message);
+        toast.error(message);
+        return;
+      }
+      toast.success("Service deleted");
       reloadServices();
-    } catch {
+    } catch (error) {
       setError("Could not delete this service.");
+      toast.error(error instanceof Error ? error.message : "Could not delete this service.");
     }
   };
 
@@ -212,13 +232,17 @@ export default function ManageServicesPage() {
                 {service.status === "pending" && (
                   <>
                     <button
-                      onClick={() => handleStatus(service._id, "approved")}
+                      onClick={() =>
+                        handleStatus(service._id, "approved", service.serviceName)
+                      }
                       className="rounded-full bg-[#2E7D5B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
                     >
                       ✓ Approve
                     </button>
                     <button
-                      onClick={() => handleStatus(service._id, "rejected")}
+                      onClick={() =>
+                        handleStatus(service._id, "rejected", service.serviceName)
+                      }
                       className="rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
                     >
                       ✕ Reject
@@ -229,7 +253,9 @@ export default function ManageServicesPage() {
                 {/* Approved (published): Reject kore unpublish kora jabe */}
                 {service.status === "approved" && (
                   <button
-                    onClick={() => handleStatus(service._id, "rejected")}
+                    onClick={() =>
+                      handleStatus(service._id, "rejected", service.serviceName)
+                    }
                     className="rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
                   >
                     ✕ Reject
@@ -239,7 +265,9 @@ export default function ManageServicesPage() {
                 {/* Rejected: abar Approve kora jabe */}
                 {service.status === "rejected" && (
                   <button
-                    onClick={() => handleStatus(service._id, "approved")}
+                    onClick={() =>
+                      handleStatus(service._id, "approved", service.serviceName)
+                    }
                     className="rounded-full bg-[#2E7D5B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
                   >
                     ✓ Approve

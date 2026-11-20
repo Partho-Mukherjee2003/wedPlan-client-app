@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { authClient } from "@/app/lib/auth-client";
+import { toast } from "react-toastify";
 
 type UserType = {
   id: string;
@@ -92,7 +93,12 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
       // Jodi notun image select kore, ImgBB te upload hobe
       if (imageFile && imageFile.size > 0) {
         const uploadedUrl = await uploadToImgBB(imageFile);
-        if (uploadedUrl) imageUrl = uploadedUrl;
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+          toast.success("Image uploaded successfully");
+        } else {
+          toast.error("Could not upload image.");
+        }
       }
 
       const { error: updateError } = await authClient.updateUser({
@@ -102,14 +108,17 @@ const uploadToImgBB = async (file: File): Promise<string | null> => {
 
       if (updateError) {
         setError(updateError.message ?? "Profile update failed.");
+        toast.error(updateError.message ?? "Profile update failed.");
         return;
       }
 
       setSuccess("Profile updated successfully!");
+      toast.success("Profile updated successfully");
       setShowForm(false);
       setImagePreview(null);
-    } catch {
+    } catch (error) {
       setError("Could not connect to the authentication server.");
+      toast.error(error instanceof Error ? error.message : "Could not connect to the authentication server.");
     } finally {
       setIsLoading(false);
     }

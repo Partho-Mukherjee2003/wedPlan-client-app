@@ -16,7 +16,12 @@ export default function ConditionalLayout({
 
   // Dashboard e Navbar/Footer dekhabe na
   if (isDashboard) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <ToastContainer position="top-center" autoClose={3000} theme="light" />
+      </>
+    );
   }
 
   return (
