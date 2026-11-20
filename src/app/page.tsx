@@ -14,9 +14,10 @@ export default function Home() {
       <Banner />
       <Suspense fallback={<FeaturedServicesFallback />}>
         <FeaturedServices />
-      <WeddingCategories/>
-      <HowWedPlanWorks />
-      <CustomerTestimonials />
+        <WeddingCategories />
+        <HowWedPlanWorks />
+
+        <CustomerTestimonials />
       </Suspense>
     </div>
   );

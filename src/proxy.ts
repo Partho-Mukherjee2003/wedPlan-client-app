@@ -25,10 +25,10 @@ export default function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // // Dashboard - sob role
-    // "/dashboard/:path*",
-    // "/vendor/:path*",
-    // "/customer/:path*",
-    // "/admin/:path*",
+    "/dashboard/:path*",
+    "/vendor/:path*",
+    "/customer/:path*",
+    "/admin/:path*",
 
     // Profile Settings
     "/profile/:path*",

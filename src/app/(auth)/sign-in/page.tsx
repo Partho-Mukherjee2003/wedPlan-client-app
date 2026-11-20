@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
 
 // Simple flower for decoration
@@ -64,9 +66,14 @@ function GoogleIcon({ className = "" }: { className?: string }) {
 }
 
 export default function SignInPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Proxy theke ashle callbackURL thakbe (jemon /services/svc_02)
+  const getCallbackURL = () =>
+    new URLSearchParams(window.location.search).get("callbackURL");
 
   const handleGoogleSignIn = async () => {
     setError("");
@@ -75,14 +82,20 @@ export default function SignInPage() {
     try {
       const { error: signInError } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        // callbackURL thakle sekhane, na hole /dashboard
+        // (/dashboard page nijei role onujayi redirect kore)
+        callbackURL: getCallbackURL() || "/dashboard",
       });
 
       if (signInError) {
-        setError(signInError.message ?? "Google sign-in failed.");
+        const message = signInError.message ?? "Google sign-in failed.";
+        setError(message);
+        toast.error(message);
       }
     } catch {
-      setError("Could not connect to the authentication server.");
+      const message = "Could not connect to the authentication server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -99,14 +112,35 @@ export default function SignInPage() {
         email: String(formData.get("email")),
         password: String(formData.get("password")),
         rememberMe: formData.get("remember") === "on",
-        callbackURL: "/",
       });
 
       if (signInError) {
-        setError(signInError.message ?? "Sign-in failed.");
+        const message = signInError.message ?? "Sign-in failed.";
+        setError(message);
+        toast.error(message);
+        return;
       }
+
+      // Login success toast
+      toast.success("Login successful! Welcome back 💍");
+
+      // Login success — ekhon role onujayi dashboard e pathao
+      const callbackURL = getCallbackURL();
+      if (callbackURL) {
+        router.push(callbackURL);
+        return;
+      }
+
+      const { data: sessionData } = await authClient.getSession();
+      const role = (sessionData?.user as { role?: string } | undefined)?.role;
+
+      if (role === "admin") router.push("/dashboard/admin");
+      else if (role === "vendor") router.push("/dashboard/vendor");
+      else router.push("/dashboard/customer");
     } catch {
-      setError("Could not connect to the authentication server.");
+      const message = "Could not connect to the authentication server.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -229,7 +263,10 @@ export default function SignInPage() {
         </div>
 
         {error && (
-          <p role="alert" className="mb-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+          <p
+            role="alert"
+            className="mb-5 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]"
+          >
             {error}
           </p>
         )}

@@ -80,7 +80,7 @@ export default async function FeaturedServices() {
             </p>
           </div>
         ) : (
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featuredServices.map((service) => (
               <Service key={service._id} service={service} />
             ))}

@@ -25,6 +25,12 @@ const locations = [
   "Mymensingh",
 ];
 
+const sortOptions = [
+  { value: "default", label: "Default" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+];
+
 export default function BrowseServicesPage() {
   const [services, setServices] = useState<ServiceType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +38,7 @@ export default function BrowseServicesPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [location, setLocation] = useState("All Locations");
+  const [sort, setSort] = useState("default");
 
   // Load services from backend
   useEffect(() => {
@@ -45,7 +52,9 @@ export default function BrowseServicesPage() {
 
     const loadServices = async () => {
       try {
-        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`);
+        const res = await fetch(
+          `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
+        );
         const data = await res.json();
         // PDF rule: only approved services
         setServices(
@@ -77,10 +86,18 @@ export default function BrowseServicesPage() {
     return matchSearch && matchCategory && matchLocation;
   });
 
+  // Price Sort - PDF Challenge requirement
+  const sortedServices = [...filteredServices].sort((a, b) => {
+    if (sort === "price-low") return a.price - b.price;
+    if (sort === "price-high") return b.price - a.price;
+    return 0;
+  });
+
   const clearFilters = () => {
     setSearch("");
     setCategory("All Categories");
     setLocation("All Locations");
+    setSort("default");
   };
 
   return (
@@ -103,7 +120,7 @@ export default function BrowseServicesPage() {
 
         {/* Search + Filter Bar */}
         <div className="mt-10 rounded-[24px] border border-[#F0DCD5] bg-white p-4 shadow-[0_8px_30px_rgba(90,40,30,0.06)] sm:p-5">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
             {/* Search by Name */}
             <div className="md:col-span-2">
               <label className="mb-1 block text-xs font-bold tracking-widest text-[#A08D84]">
@@ -153,19 +170,38 @@ export default function BrowseServicesPage() {
                 ))}
               </select>
             </div>
+
+            {/* Price Sort */}
+            <div>
+              <label className="mb-1 block text-xs font-bold tracking-widest text-[#A08D84]">
+                SORT BY PRICE
+              </label>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="w-full rounded-full border border-[#E8D5CE] bg-[#FFF9F5] px-4 py-3 text-sm text-[#241A17] outline-none focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Result count + Clear */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
             <p className="font-medium text-[#6F5E56]">
               <span className="font-bold text-[#C75B5B]">
-                {filteredServices.length}
+                {sortedServices.length}
               </span>{" "}
               services found
             </p>
             {(search ||
               category !== "All Categories" ||
-              location !== "All Locations") && (
+              location !== "All Locations" ||
+              sort !== "default") && (
               <button
                 onClick={clearFilters}
                 className="rounded-full bg-[#FDECEA] px-4 py-1.5 text-xs font-semibold text-[#C75B5B] transition hover:bg-[#F9DCDC]"
@@ -184,7 +220,7 @@ export default function BrowseServicesPage() {
               Loading services...
             </p>
           </div>
-        ) : filteredServices.length === 0 ? (
+        ) : sortedServices.length === 0 ? (
           <div className="mt-12 rounded-[20px] border border-[#F0DCD5] bg-white px-6 py-16 text-center">
             <p className="font-serif text-2xl font-bold text-[#241A17]">
               No services found
@@ -200,8 +236,8 @@ export default function BrowseServicesPage() {
             </button>
           </div>
         ) : (
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredServices.map((service) => (
+          <div className="mt-10 grid grid-cols-1 gap-6  md:grid-cols-2 lg:grid-cols-3">
+            {sortedServices.map((service) => (
               <Service key={service._id} service={service} />
             ))}
           </div>

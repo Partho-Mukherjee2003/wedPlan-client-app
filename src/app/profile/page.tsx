@@ -51,12 +51,31 @@ export default function ProfilePage() {
     if (file) setImagePreview(URL.createObjectURL(file));
   };
 
-  // Empty function for you - add ImgBB upload here later
-  const uploadToImgBB = async (file: File): Promise<string | null> => {
-    // Add your ImgBB upload functionality here
-    // Return the image URL after upload
+const uploadToImgBB = async (file: File): Promise<string | null> => {
+  const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+
+  if (!apiKey) {
+    setError("ImgBB API key not found. Check your .env.local file.");
     return null;
-  };
+  }
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data?.data?.url) {
+    setError(data?.error?.message || "Image upload failed. Please try again.");
+    return null;
+  }
+
+  return data.data.url;
+};
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

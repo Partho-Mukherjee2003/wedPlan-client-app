@@ -1,29 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 
-type UserType = {
+type AdminUser = {
   _id?: string;
   id?: string;
   name: string;
   email: string;
   image?: string | null;
-  role?: "admin" | "vendor" | "customer";
+  role: "admin" | "vendor" | "customer";
   isBlocked?: boolean;
-  subscriptionPlan?: string;
+  subscriptionPlan?: "free" | "premium";
+};
+
+const roleStyles: Record<string, string> = {
+  vendor: "bg-[#FDECEA] text-[#C75B5B]",
+  customer: "bg-[#E6F4EC] text-[#2E7D5B]",
+  admin: "bg-[#241A17] text-[#C9A86A]",
 };
 
 export default function ManageUsersPage() {
-  const [users, setUsers] = useState<UserType[]>([]);
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   const reloadUsers = async () => {
     try {
-      const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`);
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/users`,
+      );
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
     } catch {
@@ -36,7 +45,9 @@ export default function ManageUsersPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`);
+        const res = await fetch(
+          `${process.env.SERVER_URL || "http://localhost:5000"}/users`,
+        );
         const data = await res.json();
         setUsers(Array.isArray(data) ? data : []);
       } catch {
@@ -45,23 +56,35 @@ export default function ManageUsersPage() {
         setLoading(false);
       }
     };
+
     loadData();
   }, []);
 
-  const handleBlock = async (user: UserType) => {
+  const handleBlockToggle = async (user: AdminUser) => {
     const userId = user._id || user.id;
     if (!userId) return;
+
     try {
-      await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users/${userId}/block`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isBlocked: !user.isBlocked }),
-      });
-      if (user.isBlocked) {
-        toast.success(`${user.name} has been unblocked`);
-      } else {
-        toast.success(`${user.name} has been blocked`);
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/users/${userId}/block`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isBlocked: !user.isBlocked }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        const message = data.message || "Could not update this user.";
+        setError(message);
+        toast.error(message);
+        return;
       }
+      toast.success(
+        user.isBlocked
+          ? `${user.name} has been unblocked`
+          : `${user.name} has been blocked`,
+      );
       reloadUsers();
     } catch (error) {
       setError("Could not update this user.");
@@ -69,7 +92,7 @@ export default function ManageUsersPage() {
     }
   };
 
-  const filtered = users.filter((user) => {
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(search.toLowerCase()) ||
       user.email.toLowerCase().includes(search.toLowerCase());
@@ -79,7 +102,7 @@ export default function ManageUsersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3 py-20">
         <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#F3D9D0] border-t-[#C75B5B]" />
         <p className="text-[#6F5E56]">Loading users...</p>
       </div>
@@ -87,28 +110,38 @@ export default function ManageUsersPage() {
   }
 
   return (
-    <div>
-      <h1 className="font-serif text-3xl font-bold text-[#241A17]">
-        Manage Users
-      </h1>
+    <div className="mx-auto w-full max-w-5xl">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center"
+      >
+        <h1 className="font-serif text-3xl font-bold text-[#241A17] sm:text-4xl">
+          Manage <span className="italic text-[#C75B5B]">Users</span>
+        </h1>
+        <p className="mt-2 text-[#6F5E56]">
+          {users.length} registered users on the platform.
+        </p>
+      </motion.div>
 
       {error && (
-        <p className="mt-4 rounded-xl bg-[#FDECEC] px-4 py-3 text-sm font-medium text-[#DC2626]">
+        <p className="mx-auto mt-5 max-w-xl rounded-xl bg-[#FDECEC] px-4 py-3 text-center text-sm font-medium text-[#DC2626]">
           {error}
         </p>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-7 flex flex-col gap-3 sm:flex-row">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name or email..."
-          className="flex-1 rounded-xl border border-[#E8D5CE] bg-white px-4 py-3 text-sm outline-none focus:border-[#C75B5B]"
+          className="flex-1 rounded-full border border-[#E8D5CE] bg-white px-5 py-3.5 text-sm outline-none focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-xl border border-[#E8D5CE] bg-white px-4 py-3 text-sm outline-none"
+          className="rounded-full border border-[#E8D5CE] bg-white px-5 py-3.5 text-sm outline-none focus:border-[#C75B5B]"
         >
           <option value="all">All Roles</option>
           <option value="customer">Customer</option>
@@ -117,53 +150,73 @@ export default function ManageUsersPage() {
         </select>
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="mt-6 rounded-[20px] border border-[#F0DCD5] bg-white p-8 text-center text-[#6F5E56]">
-          No users found.
-        </p>
+      {filteredUsers.length === 0 ? (
+        <div className="mx-auto mt-8 max-w-xl rounded-[24px] border border-[#F0DCD5] bg-white p-10 text-center">
+          <p className="text-4xl">👥</p>
+          <p className="mt-3 font-serif text-xl font-bold text-[#241A17]">
+            No users found
+          </p>
+          <p className="mt-1.5 text-sm text-[#6F5E56]">
+            Try a different search or filter.
+          </p>
+        </div>
       ) : (
-        <div className="mt-6 flex flex-col gap-4">
-          {filtered.map((user) => (
-            <div
-              key={user._id || user.id}
-              className="flex flex-wrap items-center gap-4 rounded-[20px] border border-[#F0DCD5] bg-white p-4"
+        <div className="mt-6 flex flex-col gap-3">
+          {filteredUsers.map((user, index) => (
+            <motion.div
+              key={user._id || user.id || user.email}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+              className="flex flex-wrap items-center gap-4 rounded-[24px] border border-[#F0DCD5] bg-white p-4 shadow-[0_8px_30px_rgba(90,40,30,0.05)] sm:p-5"
             >
               <img
                 src={
                   user.image || "https://randomuser.me/api/portraits/lego/1.jpg"
                 }
                 alt={user.name}
-                className="h-12 w-12 rounded-full object-cover"
+                className="h-14 w-14 rounded-full object-cover ring-2 ring-[#F0DCD5]"
               />
-              <div className="min-w-[200px] flex-1">
+
+              <div className="min-w-[180px] flex-1">
                 <p className="font-semibold text-[#241A17]">{user.name}</p>
-                <p className="text-sm text-[#6F5E56]">{user.email}</p>
+                <p className="text-sm text-[#A08D84]">{user.email}</p>
               </div>
-              <span className="rounded-full bg-[#FDECEA] px-3 py-1 text-xs font-bold capitalize text-[#C75B5B]">
-                {user.role || "customer"}
-              </span>
-              <span
-                className={
-                  user.isBlocked
-                    ? "rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700"
-                    : "rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700"
-                }
-              >
-                {user.isBlocked ? "Blocked" : "Active"}
-              </span>
-              {user.role !== "admin" && (
-                <button
-                  onClick={() => handleBlock(user)}
-                  className={
-                    user.isBlocked
-                      ? "rounded-full bg-[#2E7D5B] px-4 py-2 text-xs font-semibold text-white"
-                      : "rounded-full bg-[#FDECEC] px-4 py-2 text-xs font-semibold text-[#DC2626]"
-                  }
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold capitalize ${roleStyles[user.role] || roleStyles.customer}`}
                 >
-                  {user.isBlocked ? "Unblock" : "Block"}
-                </button>
-              )}
-            </div>
+                  {user.role}
+                </span>
+
+                {user.role === "vendor" &&
+                  user.subscriptionPlan === "premium" && (
+                    <span className="rounded-full bg-[#C9A86A] px-3.5 py-1.5 text-xs font-bold text-[#241A17]">
+                      ★ Premium
+                    </span>
+                  )}
+
+                <span
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold ${user.isBlocked ? "bg-[#FDECEC] text-[#DC2626]" : "bg-[#E6F4EC] text-[#2E7D5B]"}`}
+                >
+                  {user.isBlocked ? "Blocked" : "Active"}
+                </span>
+
+                {user.role !== "admin" && (
+                  <button
+                    onClick={() => handleBlockToggle(user)}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                      user.isBlocked
+                        ? "bg-[#E6F4EC] text-[#2E7D5B] hover:bg-[#C8E6D5]"
+                        : "bg-[#FDECEC] text-[#DC2626] hover:bg-[#FBD5D5]"
+                    }`}
+                  >
+                    {user.isBlocked ? "Unblock" : "Block"}
+                  </button>
+                )}
+              </div>
+            </motion.div>
           ))}
         </div>
       )}

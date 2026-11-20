@@ -47,7 +47,7 @@ function Leaf({ className = "" }: IconProps) {
 }
 
 /* Profile image, or the first letter of the name if there is no image */
-/* Profile image, or the first letter of the name if there is no image */
+/* Border color = footer dark color (#241A17) */
 function Avatar({ name, image }: { name: string; image?: string | null }) {
   const [failed, setFailed] = useState(false);
 
@@ -59,13 +59,13 @@ function Avatar({ name, image }: { name: string; image?: string | null }) {
         alt={name}
         referrerPolicy="no-referrer"
         onError={() => setFailed(true)}
-        className="h-9 w-9 rounded-full object-cover ring-2 ring-(--gold)]"
+        className="h-9 w-9 rounded-full object-cover ring-2 ring-[#241A17]"
       />
     );
   }
 
   return (
-    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-(--primary)] text-sm font-semibold text-white ring-2 ring-(--gold)]">
+    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-semibold text-white ring-2 ring-[#241A17]">
       {name.charAt(0).toUpperCase()}
     </span>
   );
