@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ServiceType } from "@/app/Components/Service";
+import Image from "next/image";
 
 const statusColors: Record<ServiceType["status"], string> = {
   approved: "bg-green-100 text-green-700",
@@ -17,6 +18,7 @@ export default function ManageServicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("all");
+  const [search, setSearch] = useState("");
 
   const reloadServices = async () => {
     try {
@@ -55,7 +57,7 @@ export default function ManageServicesPage() {
     status: "approved" | "rejected",
   ) => {
     try {
-      await fetch(
+      const res = await fetch(
         `${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}/status`,
         {
           method: "PATCH",
@@ -63,6 +65,11 @@ export default function ManageServicesPage() {
           body: JSON.stringify({ status }),
         },
       );
+
+      if (!res.ok) {
+        setError("Could not update this service.");
+        return;
+      }
       reloadServices();
     } catch {
       setError("Could not update this service.");
@@ -81,10 +88,15 @@ export default function ManageServicesPage() {
     }
   };
 
-  const filteredServices =
-    activeTab === "all"
-      ? services
-      : services.filter((service) => service.status === activeTab);
+  const filteredServices = services.filter((service) => {
+    const matchesTab = activeTab === "all" || service.status === activeTab;
+    const searchText = search.toLowerCase();
+    const matchesSearch =
+      service.serviceName.toLowerCase().includes(searchText) ||
+      service.category.toLowerCase().includes(searchText) ||
+      service.location.toLowerCase().includes(searchText);
+    return matchesTab && matchesSearch;
+  });
 
   if (loading) {
     return (
@@ -117,7 +129,18 @@ export default function ManageServicesPage() {
         </p>
       )}
 
-      <div className="mt-7 flex flex-wrap justify-center gap-2">
+      {/* Search */}
+      <div className="mx-auto mt-7 max-w-xl">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by service name, category or location..."
+          className="w-full rounded-full border border-[#E8D5CE] bg-white px-5 py-3.5 text-sm outline-none focus:border-[#C75B5B] focus:ring-2 focus:ring-[#C75B5B]/20"
+        />
+      </div>
+
+      {/* Status filter tabs */}
+      <div className="mt-5 flex flex-wrap justify-center gap-2">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -142,10 +165,10 @@ export default function ManageServicesPage() {
         <div className="mx-auto mt-8 max-w-xl rounded-[24px] border border-[#F0DCD5] bg-white p-10 text-center">
           <p className="text-4xl">🎁</p>
           <p className="mt-3 font-serif text-xl font-bold text-[#241A17]">
-            No services here
+            No services found
           </p>
           <p className="mt-1.5 text-sm text-[#6F5E56]">
-            There are no {activeTab} services at the moment.
+            Try a different search or filter.
           </p>
         </div>
       ) : (
@@ -158,7 +181,9 @@ export default function ManageServicesPage() {
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className="flex flex-wrap items-center gap-4 rounded-[24px] border border-[#F0DCD5] bg-white p-4 shadow-[0_8px_30px_rgba(90,40,30,0.05)] sm:p-5"
             >
-              <img
+              <Image
+                width={112}
+                height={80}
                 src={service.images?.[0]}
                 alt={service.serviceName}
                 className="h-20 w-28 rounded-xl object-cover"
@@ -183,6 +208,7 @@ export default function ManageServicesPage() {
                   {service.status}
                 </span>
 
+                {/* Pending: Approve + Reject */}
                 {service.status === "pending" && (
                   <>
                     <button
@@ -198,6 +224,26 @@ export default function ManageServicesPage() {
                       ✕ Reject
                     </button>
                   </>
+                )}
+
+                {/* Approved (published): Reject kore unpublish kora jabe */}
+                {service.status === "approved" && (
+                  <button
+                    onClick={() => handleStatus(service._id, "rejected")}
+                    className="rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
+                  >
+                    ✕ Reject
+                  </button>
+                )}
+
+                {/* Rejected: abar Approve kora jabe */}
+                {service.status === "rejected" && (
+                  <button
+                    onClick={() => handleStatus(service._id, "approved")}
+                    className="rounded-full bg-[#2E7D5B] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
+                  >
+                    ✓ Approve
+                  </button>
                 )}
 
                 <button

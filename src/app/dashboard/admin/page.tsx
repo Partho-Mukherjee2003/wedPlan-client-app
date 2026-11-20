@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ServiceType } from "@/app/Components/Service";
 
+type AdminUser = {
+  _id?: string;
+  id?: string;
+  role: "admin" | "vendor" | "customer";
+};
+
 type TransactionType = {
   _id: string;
   amount: number;
@@ -11,7 +17,7 @@ type TransactionType = {
 };
 
 export default function AdminOverviewPage() {
-  const [users, setUsers] = useState<unknown[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [services, setServices] = useState<ServiceType[]>([]);
   const [bookings, setBookings] = useState<unknown[]>([]);
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
@@ -63,13 +69,17 @@ export default function AdminOverviewPage() {
     );
   }
 
+  const totalVendors = users.filter((u) => u.role === "vendor").length;
+  const totalCustomers = users.filter((u) => u.role === "customer").length;
   const pendingServices = services.filter((s) => s.status === "pending").length;
   const totalRevenue = transactions
     .filter((t) => t.status === "succeeded")
     .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   const cards = [
-    { label: "Total Users", value: users.length, icon: "👥" },
+    { label: "Total Registered Users", value: users.length, icon: "👥" },
+    { label: "Total Vendors", value: totalVendors, icon: "🏪" },
+    { label: "Total Customers", value: totalCustomers, icon: "🧑‍🤝‍🧑" },
     { label: "Total Services", value: services.length, icon: "🎁" },
     { label: "Pending Services", value: pendingServices, icon: "⏳" },
     { label: "Total Bookings", value: bookings.length, icon: "💍" },
@@ -101,13 +111,13 @@ export default function AdminOverviewPage() {
         </p>
       )}
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, index) => (
           <motion.div
             key={card.label}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.08 }}
+            transition={{ duration: 0.5, delay: index * 0.07 }}
             whileHover={{ y: -4 }}
             className="rounded-[24px] border border-[#F0DCD5] bg-white p-6 shadow-[0_8px_30px_rgba(90,40,30,0.06)]"
           >
