@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { ServiceType } from "@/app/Components/Service";
 import { authClient } from "@/app/lib/auth-client";
+import { getAuthHeader } from "@/app/lib/authHeader";
 import Image from "next/image";
+
 type VendorType = {
   _id?: string;
   id?: string;
@@ -160,7 +162,10 @@ export default function ServiceDetails({ service }: { service: ServiceType }) {
         `${process.env.SERVER_URL || "http://localhost:5000"}/bookings`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeader()),
+          },
           body: JSON.stringify(bookingData),
         },
       );

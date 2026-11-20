@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import Image from "next/image";
+import { getAuthHeader } from "@/app/lib/authHeader";
 
 type AdminUser = {
   _id?: string;
@@ -71,7 +73,10 @@ export default function ManageUsersPage() {
         `${process.env.SERVER_URL || "http://localhost:5000"}/users/${userId}/block`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeader()),
+          },
           body: JSON.stringify({ isBlocked: willBlock }),
         },
       );
@@ -175,7 +180,9 @@ export default function ManageUsersPage() {
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className="flex flex-wrap items-center gap-4 rounded-[24px] border border-[#F0DCD5] bg-white p-4 shadow-[0_8px_30px_rgba(90,40,30,0.05)] sm:p-5"
             >
-              <img
+              <Image
+                width={56}
+                height={56}
                 src={
                   user.image || "https://randomuser.me/api/portraits/lego/1.jpg"
                 }

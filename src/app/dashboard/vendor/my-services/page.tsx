@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
+import { getAuthHeader } from "@/app/lib/authHeader";
 import { ServiceType } from "@/app/Components/Service";
+import Image from "next/image";
 
 const statusColors: Record<ServiceType["status"], string> = {
   approved: "bg-green-100 text-green-700",
@@ -87,7 +89,7 @@ export default function MyServicesPage() {
     try {
       const res = await fetch(
         `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}?vendorId=${userId}`,
-        { method: "DELETE" },
+        { method: "DELETE", headers: await getAuthHeader() },
       );
 
       const data = await res.json().catch(() => null);
@@ -120,7 +122,10 @@ export default function MyServicesPage() {
         `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeader()),
+          },
           body: JSON.stringify({
             vendorId: userId,
             serviceName: newName,
@@ -191,7 +196,9 @@ export default function MyServicesPage() {
               key={service._id}
               className="w-full max-w-sm overflow-hidden rounded-[24px] border border-[#F0DCD5] bg-white shadow-[0_8px_30px_rgba(90,40,30,0.06)] transition hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(199,91,91,0.12)]"
             >
-              <img
+              <Image
+                width={800}
+                height={600}
                 src={service.images?.[0]}
                 alt={service.serviceName}
                 className="h-48 w-full object-cover"

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client"; // change if your path is different
-
+import Image from "next/image";
 type IconProps = { className?: string };
 
 const links = [
@@ -55,7 +55,9 @@ function Avatar({ name, image }: { name: string; image?: string | null }) {
   if (image && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <Image
+        width={36}
+        height={36}
         src={image}
         alt={name}
         referrerPolicy="no-referrer"

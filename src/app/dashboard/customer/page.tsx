@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { authClient } from "@/app/lib/auth-client";
+import { getAuthHeader } from "@/app/lib/authHeader";
 
 type BookingType = {
   _id: string;
@@ -26,6 +27,7 @@ export default function CustomerOverviewPage() {
       try {
         const res = await fetch(
           `${process.env.SERVER_URL || "http://localhost:5000"}/bookings?customerId=${userId}`,
+          { headers: await getAuthHeader() },
         );
         const data = await res.json();
         setBookings(Array.isArray(data) ? data : []);

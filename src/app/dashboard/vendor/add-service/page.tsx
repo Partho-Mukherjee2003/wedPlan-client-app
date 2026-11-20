@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
+import { getAuthHeader } from "@/app/lib/authHeader";
+import Image from "next/image";
 
 const categories = [
   "Photography & Videography",
@@ -113,7 +115,10 @@ export default function AddServicePage() {
         `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeader()),
+          },
           body: JSON.stringify(serviceData),
         },
       );
@@ -233,7 +238,9 @@ export default function AddServicePage() {
         <div>
           <label className={labelClass}>Service Image</label>
           {imagePreview && (
-            <img
+            <Image
+              width={800}
+              height={600}
               src={imagePreview}
               alt="Preview"
               className="mb-3 h-52 w-full rounded-xl object-cover"

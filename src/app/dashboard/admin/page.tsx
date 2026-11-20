@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ServiceType } from "@/app/Components/Service";
+import { getAuthHeader } from "@/app/lib/authHeader";
 
 type AdminUser = {
   _id?: string;
@@ -35,9 +36,11 @@ export default function AdminOverviewPage() {
             ),
             fetch(
               `${process.env.SERVER_URL || "http://localhost:5000"}/bookings`,
+              { headers: await getAuthHeader() },
             ),
             fetch(
               `${process.env.SERVER_URL || "http://localhost:5000"}/transactions`,
+              { headers: await getAuthHeader() },
             ),
           ]);
 

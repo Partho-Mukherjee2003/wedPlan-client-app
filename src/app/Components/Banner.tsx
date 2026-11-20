@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 // Simple flower for decoration
@@ -134,7 +135,9 @@ export default function Banner() {
         <div className="fade-up-2 relative mx-auto w-full max-w-lg">
           {/* Main wedding image */}
           <div className="overflow-hidden rounded-[28px] border-4 border-white shadow-[0_16px_40px_rgba(90,40,30,0.12)]">
-            <img
+            <Image
+              width={1200}
+              height={800}
               src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop"
               alt="Happy wedding couple"
               className="h-[380px] w-full object-cover sm:h-[460px]"

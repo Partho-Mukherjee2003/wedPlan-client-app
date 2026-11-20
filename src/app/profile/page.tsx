@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
-
+import Image from "next/image";
 type UserType = {
   id: string;
   name: string;
@@ -318,7 +318,9 @@ export default function ProfilePage() {
                       </label>
                       <div className="flex items-center gap-3">
                         {imagePreview && (
-                          <img
+                          <Image
+                            width={48}
+                            height={48}
                             src={imagePreview}
                             alt="Preview"
                             className="h-12 w-12 rounded-full object-cover ring-2 ring-[#F0DCD5]"

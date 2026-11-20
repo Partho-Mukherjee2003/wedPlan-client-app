@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { authClient } from "@/app/lib/auth-client";
+import { getAuthHeader } from "@/app/lib/authHeader";
 import { ServiceType } from "@/app/Components/Service";
 
 type BookingType = {
@@ -48,6 +49,7 @@ export default function VendorOverviewPage() {
           ),
           fetch(
             `${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`,
+            { headers: await getAuthHeader() },
           ),
           fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
         ]);

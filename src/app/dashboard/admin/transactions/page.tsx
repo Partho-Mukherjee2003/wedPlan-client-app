@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { getAuthHeader } from "@/app/lib/authHeader";
 
 type TransactionType = {
   _id: string;
@@ -39,6 +40,7 @@ export default function TransactionsPage() {
         const [transactionRes, userRes] = await Promise.all([
           fetch(
             `${process.env.SERVER_URL || "http://localhost:5000"}/transactions`,
+            { headers: await getAuthHeader() },
           ),
           fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
         ]);

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
+import { getAuthHeader } from "@/app/lib/authHeader";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
 
@@ -58,6 +59,7 @@ export default function VendorBookingsPage() {
       const [bookingRes, serviceRes, userRes] = await Promise.all([
         fetch(
           `${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`,
+          { headers: await getAuthHeader() },
         ),
         fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services`),
         fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
@@ -83,6 +85,7 @@ export default function VendorBookingsPage() {
         const [bookingRes, serviceRes, userRes] = await Promise.all([
           fetch(
             `${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`,
+            { headers: await getAuthHeader() },
           ),
           fetch(
             `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
@@ -138,7 +141,10 @@ export default function VendorBookingsPage() {
         `${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${booking._id}`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeader()),
+          },
           body: JSON.stringify({ status, vendorId: userId }),
         },
       );

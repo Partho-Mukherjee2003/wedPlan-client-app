@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
+import { getAuthHeader } from "@/app/lib/authHeader";
 
 const statusColors: Record<ServiceType["status"], string> = {
   approved: "bg-green-100 text-green-700",
@@ -62,7 +63,10 @@ export default function ManageServicesPage() {
         `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}/status`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeader()),
+          },
           body: JSON.stringify({ status }),
         },
       );
@@ -92,7 +96,7 @@ export default function ManageServicesPage() {
     try {
       const res = await fetch(
         `${process.env.SERVER_URL || "http://localhost:5000"}/services/${service._id}`,
-        { method: "DELETE" },
+        { method: "DELETE", headers: await getAuthHeader() },
       );
 
       const data = await res.json().catch(() => null);

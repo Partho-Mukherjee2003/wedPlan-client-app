@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-
+import Image from "next/image";
 const testimonials = [
   {
     name: "Samiul Karim",
@@ -119,7 +119,9 @@ export default function CustomerTestimonials() {
 
               {/* Person */}
               <div className="mt-6 flex items-center gap-3 border-t border-current/10 pt-5">
-                <img
+                <Image
+                  width={48}
+                  height={48}
                   src={t.image}
                   alt={t.name}
                   className="h-12 w-12 rounded-full object-cover ring-2 ring-[#C9A86A]"

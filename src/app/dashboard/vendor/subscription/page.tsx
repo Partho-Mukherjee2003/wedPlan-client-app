@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { authClient } from "@/app/lib/auth-client";
+import { getAuthHeader } from "@/app/lib/authHeader";
 
 type UserType = {
   id: string;
@@ -80,7 +81,10 @@ export default function SubscriptionPage() {
         `${process.env.SERVER_URL || "http://localhost:5000"}/create-checkout-session`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(await getAuthHeader()),
+          },
           body: JSON.stringify({ vendorId: user.id, vendorEmail: user.email }),
         },
       );
