@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { authClient } from "@/app/lib/auth-client";
 
@@ -37,10 +37,35 @@ const premiumFeatures = [
 export default function SubscriptionPage() {
   const { data: session } = authClient.useSession();
   const user = session?.user as UserType | undefined;
-  const currentPlan = user?.subscriptionPlan || "free";
 
+  const [freshPlan, setFreshPlan] = useState("");
   const [upgrading, setUpgrading] = useState(false);
   const [error, setError] = useState("");
+
+  // Session e subscriptionPlan nao thakte pare, tai backend theke
+  // fresh plan niye ashi (database er asol plan tai dekhabe)
+  useEffect(() => {
+    const loadFreshPlan = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.SERVER_URL || "http://localhost:5000"}/users`,
+        );
+        const users = await res.json();
+        if (Array.isArray(users) && user) {
+          const me = users.find(
+            (u: { _id?: string; id?: string }) => (u._id || u.id) === user.id,
+          );
+          if (me) setFreshPlan(me.subscriptionPlan || "free");
+        }
+      } catch {
+        setFreshPlan("");
+      }
+    };
+
+    loadFreshPlan();
+  }, [user]);
+
+  const currentPlan = freshPlan || user?.subscriptionPlan || "free";
 
   const handleUpgrade = async () => {
     if (!user) return;

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
 
@@ -14,7 +14,16 @@ type BookingType = {
 type UserType = {
   id: string;
   name: string;
+  email: string;
+  emailVerified: boolean;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  role: "admin" | "vendor" | "customer";
+  isBlocked: boolean;
+  businessName?: string;
   subscriptionPlan: "free" | "premium";
+  subscriptionExpiresAt?: string;
 };
 
 export default function VendorOverviewPage() {
@@ -22,8 +31,9 @@ export default function VendorOverviewPage() {
   const user = session?.user as UserType | undefined;
   const userId = user?.id;
 
+  const [services, setServices] = useState<ServiceType[]>([]);
   const [bookings, setBookings] = useState<BookingType[]>([]);
-  const [myServices, setMyServices] = useState<ServiceType[]>([]);
+  const [freshPlan, setFreshPlan] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -32,23 +42,26 @@ export default function VendorOverviewPage() {
 
     const loadData = async () => {
       try {
-        const [bookingRes, serviceRes] = await Promise.all([
+        const [serviceRes, bookingRes, userRes] = await Promise.all([
+          fetch(
+            `${process.env.SERVER_URL || "http://localhost:5000"}/services?vendorId=${userId}`,
+          ),
           fetch(
             `${process.env.SERVER_URL || "http://localhost:5000"}/bookings?vendorId=${userId}`,
           ),
-          fetch(
-            `${process.env.SERVER_URL || "http://localhost:5000"}/services`,
-          ),
+          fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/users`),
         ]);
-        const bookingData = await bookingRes.json();
         const serviceData = await serviceRes.json();
-
+        const bookingData = await bookingRes.json();
+        const userData = await userRes.json();
+        setServices(Array.isArray(serviceData) ? serviceData : []);
         setBookings(Array.isArray(bookingData) ? bookingData : []);
-        setMyServices(
-          Array.isArray(serviceData)
-            ? serviceData.filter((s: ServiceType) => s.vendorId === userId)
-            : [],
-        );
+        if (Array.isArray(userData)) {
+          const me = userData.find(
+            (u: { _id?: string; id?: string }) => (u._id || u.id) === userId,
+          );
+          if (me) setFreshPlan(me.subscriptionPlan || "free");
+        }
       } catch {
         setError("Could not load overview data.");
       } finally {
@@ -68,18 +81,17 @@ export default function VendorOverviewPage() {
     );
   }
 
-  const activeServices = myServices.filter(
-    (s) => s.status === "approved",
-  ).length;
-  const pendingRequests = bookings.filter((b) => b.status === "pending").length;
+  const displayPlan = freshPlan || user?.subscriptionPlan || "free";
+  const activeServices = services.filter((s) => s.status === "approved").length;
+  const pendingBookings = bookings.filter((b) => b.status === "pending").length;
   const acceptedBookings = bookings.filter(
     (b) => b.status === "accepted",
   ).length;
 
   const cards = [
-    { label: "Total Services", value: myServices.length, icon: "🎁" },
+    { label: "Total Services", value: services.length, icon: "🎁" },
     { label: "Active Services", value: activeServices, icon: "✅" },
-    { label: "Pending Booking Requests", value: pendingRequests, icon: "⏳" },
+    { label: "Pending Booking Requests", value: pendingBookings, icon: "⏳" },
     { label: "Accepted Bookings", value: acceptedBookings, icon: "💍" },
   ];
 
@@ -94,7 +106,7 @@ export default function VendorOverviewPage() {
         <h1 className="font-serif text-3xl font-bold text-[#241A17] sm:text-4xl">
           Vendor <span className="italic text-[#C75B5B]">Overview</span>
         </h1>
-        <p className="mt-2 text-[#6F5E56]">Welcome back, {user?.name}</p>
+        <p className="mt-2 text-[#6F5E56]">Welcome back, {user?.name}!</p>
       </motion.div>
 
       {error && (
@@ -109,7 +121,7 @@ export default function VendorOverviewPage() {
             key={card.label}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
+            transition={{ duration: 0.5, delay: index * 0.08 }}
             whileHover={{ y: -4 }}
             className="rounded-[24px] border border-[#F0DCD5] bg-white p-6 shadow-[0_8px_30px_rgba(90,40,30,0.06)]"
           >
@@ -126,27 +138,29 @@ export default function VendorOverviewPage() {
         ))}
       </div>
 
+      {/* Subscription banner */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[24px] bg-[#241A17] p-6 text-white sm:p-8"
+        transition={{ duration: 0.55, delay: 0.35 }}
+        className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[28px] bg-[#241A17] p-7 text-white shadow-[0_20px_50px_rgba(36,26,23,0.25)]"
       >
         <div>
           <p className="text-sm text-white/60">Current Subscription Plan</p>
-          <p className="mt-2 font-serif text-3xl font-bold capitalize sm:text-4xl">
-            {user?.subscriptionPlan || "Free"} Plan
+          <p className="mt-1 font-serif text-2xl font-bold capitalize text-[#F0D9A8]">
+            {displayPlan === "premium" ? "★ Premium Plan" : "Free Plan"}
           </p>
-          <p className="mt-1.5 text-sm text-white/70">
-            {user?.subscriptionPlan === "premium"
-              ? "Unlimited active services • Premium Vendor Badge"
-              : "Maximum 3 active services • Upgrade for unlimited"}
+          <p className="mt-1 text-sm text-white/60">
+            {displayPlan === "premium"
+              ? "You can add unlimited services with the premium badge."
+              : "You can add up to 3 active services on the Free plan."}
           </p>
         </div>
-        {user?.subscriptionPlan !== "premium" && (
+
+        {displayPlan !== "premium" && (
           <Link
             href="/dashboard/vendor/subscription"
-            className="rounded-full bg-[#C75B5B] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-[#B04A4A]"
+            className="rounded-full bg-[#C75B5B] px-7 py-3.5 font-semibold text-white transition hover:bg-[#B04A4A]"
           >
             Upgrade to Premium →
           </Link>

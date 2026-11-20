@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,6 +77,32 @@ export default function DashboardSidebar({ user }: { user: UserType }) {
   const menuItems = menus[user.role] || menus.customer;
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [freshPlan, setFreshPlan] = useState("");
+
+  // Session e subscriptionPlan nao thakte pare, tai backend theke
+  // fresh plan niye ashi (database er asol plan tai dekhabe)
+  useEffect(() => {
+    const loadFreshPlan = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.SERVER_URL || "http://localhost:5000"}/users`,
+        );
+        const users = await res.json();
+        if (Array.isArray(users)) {
+          const me = users.find(
+            (u: { _id?: string; id?: string }) => (u._id || u.id) === user.id,
+          );
+          if (me) setFreshPlan(me.subscriptionPlan || "free");
+        }
+      } catch {
+        setFreshPlan("");
+      }
+    };
+
+    loadFreshPlan();
+  }, [user.id]);
+
+  const displayPlan = freshPlan || user.subscriptionPlan || "free";
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -133,7 +159,7 @@ export default function DashboardSidebar({ user }: { user: UserType }) {
           </motion.span>
 
           {/* Plan badge */}
-          {user.subscriptionPlan === "premium" ? (
+          {displayPlan === "premium" ? (
             <motion.span
               animate={{
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
