@@ -23,8 +23,8 @@ function Flower({ className = "" }: { className?: string }) {
 const quickLinks = [
   { label: "Home", href: "/" },
   { label: "Browse Services", href: "/services" },
-  { label: "Sign In", href: "/signin" },
-  { label: "Sign Up", href: "/signup" },
+  { label: "Sign In", href: "/sign-in" },
+  { label: "Sign Up", href: "/sign-up" },
 ];
 
 const categories = [
