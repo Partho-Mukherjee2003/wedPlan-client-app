@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 const statusColors: Record<ServiceType["status"], string> = {
   approved: "bg-green-100 text-green-700",
@@ -46,6 +47,7 @@ export default function ManageServicesPage() {
   const handleStatus = async (
     serviceId: string,
     status: "approved" | "rejected",
+    serviceName: string,
   ) => {
     try {
       await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/services/${serviceId}/status`, {
@@ -53,9 +55,15 @@ export default function ManageServicesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
+      if (status === "approved") {
+        toast.success(`'${serviceName}' is now live`);
+      } else {
+        toast.success(`'${serviceName}' has been rejected`);
+      }
       reloadServices();
-    } catch {
+    } catch (error) {
       setError("Could not update service status.");
+      toast.error(error instanceof Error ? error.message : "Could not update service status.");
     }
   };
 
@@ -67,9 +75,11 @@ export default function ManageServicesPage() {
           method: "DELETE",
         },
       );
+      toast.success("Service deleted");
       reloadServices();
-    } catch {
+    } catch (error) {
       setError("Could not delete this service.");
+      toast.error(error instanceof Error ? error.message : "Could not delete this service.");
     }
   };
 
@@ -149,13 +159,17 @@ export default function ManageServicesPage() {
                 {service.status === "pending" && (
                   <>
                     <button
-                      onClick={() => handleStatus(service._id, "approved")}
+                      onClick={() =>
+                        handleStatus(service._id, "approved", service.serviceName)
+                      }
                       className="rounded-full bg-[#2E7D5B] px-4 py-2 text-xs font-semibold text-white"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => handleStatus(service._id, "rejected")}
+                      onClick={() =>
+                        handleStatus(service._id, "rejected", service.serviceName)
+                      }
                       className="rounded-full bg-[#DC2626] px-4 py-2 text-xs font-semibold text-white"
                     >
                       Reject

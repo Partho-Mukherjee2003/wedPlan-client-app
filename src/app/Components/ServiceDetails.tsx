@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ServiceType } from "@/app/Components/Service";
 import { authClient } from "@/app/lib/auth-client";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 type UserType = {
   id: string;
@@ -101,16 +102,19 @@ export default function ServiceDetails({ service }: { service: ServiceType }) {
 
       if (!res.ok) {
         setError(data.message || "Booking failed. Please try again.");
+        toast.error(data.message || "Booking failed. Please try again.");
         return;
       }
 
       setSuccess(
         "Booking request sent successfully! The vendor will review it soon.",
       );
+      toast.success(`Booking request sent for ${service.serviceName} 💍`);
       form.reset();
       setShowForm(false);
-    } catch {
+    } catch (error) {
       setError("Could not connect to the server.");
+      toast.error(error instanceof Error ? error.message : "Could not connect to the server.");
     } finally {
       setIsLoading(false);
     }

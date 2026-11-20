@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
+import { toast } from "react-toastify";
 
 type BookingType = {
   _id: string;
   serviceId: string;
   vendorId: string;
   customerId: string;
+  customerName?: string;
   eventDate: string;
   eventLocation: string;
   message?: string;
@@ -78,6 +80,7 @@ export default function VendorBookingsPage() {
   const handleStatus = async (
     bookingId: string,
     status: "accepted" | "rejected",
+    customerName: string,
   ) => {
     try {
       await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`, {
@@ -85,9 +88,15 @@ export default function VendorBookingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
+      if (status === "accepted") {
+        toast.success(`Booking accepted for ${customerName}`);
+      } else {
+        toast.success(`Booking rejected for ${customerName}`);
+      }
       reloadBookings();
-    } catch {
+    } catch (error) {
       setError("Could not update this booking.");
+      toast.error(error instanceof Error ? error.message : "Could not update this booking.");
     }
   };
 
@@ -151,13 +160,25 @@ export default function VendorBookingsPage() {
               {booking.status === "pending" && (
                 <div className="mt-4 flex gap-3">
                   <button
-                    onClick={() => handleStatus(booking._id, "accepted")}
+                    onClick={() =>
+                      handleStatus(
+                        booking._id,
+                        "accepted",
+                        booking.customerName || booking.customerId || "Wedding Customer",
+                      )
+                    }
                     className="rounded-full bg-[#2E7D5B] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#256B4D]"
                   >
                     Accept
                   </button>
                   <button
-                    onClick={() => handleStatus(booking._id, "rejected")}
+                    onClick={() =>
+                      handleStatus(
+                        booking._id,
+                        "rejected",
+                        booking.customerName || booking.customerId || "Wedding Customer",
+                      )
+                    }
                     className="rounded-full bg-[#DC2626] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#B91C1C]"
                   >
                     Reject

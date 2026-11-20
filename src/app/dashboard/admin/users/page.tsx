@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 type UserType = {
   _id?: string;
@@ -56,9 +57,15 @@ export default function ManageUsersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isBlocked: !user.isBlocked }),
       });
+      if (user.isBlocked) {
+        toast.success(`${user.name} has been unblocked`);
+      } else {
+        toast.success(`${user.name} has been blocked`);
+      }
       reloadUsers();
-    } catch {
+    } catch (error) {
       setError("Could not update this user.");
+      toast.error(error instanceof Error ? error.message : "Could not update this user.");
     }
   };
 

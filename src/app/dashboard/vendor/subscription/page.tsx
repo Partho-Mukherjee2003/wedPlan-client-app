@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
+import { toast } from "react-toastify";
 
 type UserType = {
   subscriptionPlan: "free" | "premium";
@@ -15,6 +16,7 @@ export default function SubscriptionPage() {
 
   const handleUpgrade = () => {
     // Stripe checkout ekhane bosbe - porer step e
+    toast.info("Redirecting to secure payment...");
     setMessage("Stripe payment will be connected in the next step.");
   };
 

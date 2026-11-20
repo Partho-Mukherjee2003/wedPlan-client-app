@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 type BookingType = {
   _id: string;
@@ -99,7 +100,7 @@ export default function MyBookingsPage() {
     loadData();
   }, [userId]);
 
-  const handleCancel = async (bookingId: string) => {
+  const handleCancel = async (bookingId: string, serviceName: string) => {
     try {
       const res = await fetch(`${process.env.SERVER_URL || "http://localhost:5000"}/bookings/${bookingId}`, {
         method: "PATCH",
@@ -110,11 +111,14 @@ export default function MyBookingsPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.message || "Could not cancel this booking.");
+        toast.error(data.message || "Could not cancel this booking.");
         return;
       }
+      toast.success(`Booking cancelled for ${serviceName}`);
       reloadBookings();
-    } catch {
+    } catch (error) {
       setError("Could not cancel this booking.");
+      toast.error(error instanceof Error ? error.message : "Could not cancel this booking.");
     }
   };
 
@@ -220,7 +224,13 @@ export default function MyBookingsPage() {
 
                     {booking.status === "pending" && (
                       <button
-                        onClick={() => handleCancel(booking._id)}
+                        onClick={() =>
+                          handleCancel(
+                            booking._id,
+                            getService(booking.serviceId)?.serviceName ||
+                              "Wedding Service",
+                          )
+                        }
                         className="rounded-full bg-[#FDECEC] px-4 py-2 text-xs font-semibold text-[#DC2626] transition hover:bg-[#FBD5D5]"
                       >
                         Cancel

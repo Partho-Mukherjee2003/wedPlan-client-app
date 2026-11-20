@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
+import { ToastContainer } from "react-toastify";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -33,6 +35,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-[#FFF9F5] text-[#241A17]">
         <Navbar />
         <main className="flex-1">{children}</main>
+        <ToastContainer position="top-right" />
 
         <Footer/>
       </body>

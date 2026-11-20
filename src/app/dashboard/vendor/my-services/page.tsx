@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
 import { ServiceType } from "@/app/Components/Service";
+import { toast } from "react-toastify";
 
 const statusColors: Record<ServiceType["status"], string> = {
   approved: "bg-green-100 text-green-700",
@@ -86,9 +87,11 @@ export default function MyServicesPage() {
           method: "DELETE",
         },
       );
+      toast.success("Service deleted");
       reloadServices();
-    } catch {
+    } catch (error) {
       setError("Could not delete this service.");
+      toast.error(error instanceof Error ? error.message : "Could not delete this service.");
     }
   };
 
@@ -112,10 +115,12 @@ export default function MyServicesPage() {
           location: String(formData.get("location")),
         }),
       });
+      toast.success("Service updated successfully");
       setEditingId(null);
       reloadServices();
-    } catch {
+    } catch (error) {
       setError("Could not update this service.");
+      toast.error(error instanceof Error ? error.message : "Could not update this service.");
     }
   };
 
