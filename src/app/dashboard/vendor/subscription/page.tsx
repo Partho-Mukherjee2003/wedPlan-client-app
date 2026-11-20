@@ -5,43 +5,74 @@ import { motion } from "framer-motion";
 import { authClient } from "@/app/lib/auth-client";
 
 type UserType = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  role: "admin" | "vendor" | "customer";
+  isBlocked: boolean;
+  businessName?: string;
   subscriptionPlan: "free" | "premium";
+  subscriptionExpiresAt?: string;
 };
+
+const freeFeatures = [
+  "Up to 3 active services",
+  "Receive booking requests",
+  "Basic vendor profile",
+  "Standard support",
+];
+
+const premiumFeatures = [
+  "Unlimited services",
+  "Premium vendor badge on all services",
+  "Priority listing in search",
+  "Receive booking requests",
+  "Priority support",
+];
 
 export default function SubscriptionPage() {
   const { data: session } = authClient.useSession();
   const user = session?.user as UserType | undefined;
   const currentPlan = user?.subscriptionPlan || "free";
-  const [message, setMessage] = useState("");
 
-  const handleUpgrade = () => {
-    setMessage("Stripe payment will be connected in the next step.");
+  const [upgrading, setUpgrading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleUpgrade = async () => {
+    if (!user) return;
+
+    setUpgrading(true);
+    setError("");
+
+    try {
+      const res = await fetch(
+        `${process.env.SERVER_URL || "http://localhost:5000"}/create-checkout-session`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ vendorId: user.id, vendorEmail: user.email }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.url) {
+        setError(data.message || "Could not start payment. Please try again.");
+        setUpgrading(false);
+        return;
+      }
+
+      // Stripe er payment page e pathiye dao
+      window.location.href = data.url;
+    } catch {
+      setError("Could not start payment. Please try again.");
+      setUpgrading(false);
+    }
   };
-
-  const plans = [
-    {
-      name: "Free Plan",
-      price: "৳0",
-      features: [
-        "Maximum 3 Active Services",
-        "Basic Vendor Dashboard",
-        "Booking Request Management",
-      ],
-      isCurrent: currentPlan === "free",
-      isPremium: false,
-    },
-    {
-      name: "Premium Plan",
-      price: "৳4,999",
-      features: [
-        "Unlimited Active Services",
-        "Premium Vendor Badge",
-        "All Free Plan Features",
-      ],
-      isCurrent: currentPlan === "premium",
-      isPremium: true,
-    },
-  ];
 
   return (
     <div className="mx-auto w-full max-w-4xl">
@@ -52,91 +83,126 @@ export default function SubscriptionPage() {
         className="text-center"
       >
         <h1 className="font-serif text-3xl font-bold text-[#241A17] sm:text-4xl">
-          <span className="italic text-[#C75B5B]">Subscription</span> Plans
+          Subscription <span className="italic text-[#C75B5B]">Plans</span>
         </h1>
         <p className="mt-2 text-[#6F5E56]">
-          Choose the plan that fits your business.
+          You are currently on the{" "}
+          <span className="font-bold capitalize text-[#241A17]">
+            {currentPlan}
+          </span>{" "}
+          plan.
         </p>
       </motion.div>
 
-      {message && (
-        <p className="mx-auto mt-5 max-w-xl rounded-xl bg-[#FFF3D6] px-4 py-3 text-center text-sm font-medium text-[#A8864A]">
-          {message}
+      {error && (
+        <p className="mx-auto mt-5 max-w-xl rounded-xl bg-[#FDECEC] px-4 py-3 text-center text-sm font-medium text-[#DC2626]">
+          {error}
         </p>
       )}
 
-      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-        {plans.map((plan, index) => (
-          <motion.div
-            key={plan.name}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.15 }}
-            whileHover={{ y: -6 }}
-            className={
-              plan.isPremium
-                ? "relative overflow-hidden rounded-[28px] bg-[#241A17] p-7 text-white shadow-[0_16px_40px_rgba(36,26,23,0.25)]"
-                : plan.isCurrent
-                  ? "rounded-[28px] border-2 border-[#C75B5B] bg-white p-7 shadow-[0_8px_30px_rgba(90,40,30,0.06)]"
-                  : "rounded-[28px] border border-[#F0DCD5] bg-white p-7 shadow-[0_8px_30px_rgba(90,40,30,0.06)]"
-            }
-          >
-            {plan.isPremium && (
-              <span className="absolute right-5 top-5 rounded-full bg-[#C9A86A] px-3 py-1 text-xs font-bold text-[#241A17]">
-                ★ POPULAR
-              </span>
-            )}
+      <div className="mt-9 grid grid-cols-1 gap-5 md:grid-cols-2">
+        {/* Free plan */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="rounded-[28px] border border-[#F0DCD5] bg-white p-7 shadow-[0_8px_30px_rgba(90,40,30,0.05)]"
+        >
+          <p className="font-serif text-xl font-bold text-[#241A17]">
+            Free Plan
+          </p>
+          <p className="mt-3 font-serif text-4xl font-bold text-[#241A17]">
+            ৳0
+            <span className="text-base font-normal text-[#A08D84]">
+              {" "}
+              / forever
+            </span>
+          </p>
 
-            <div className="flex items-center gap-3">
-              <h2
-                className={`font-serif text-2xl font-bold ${plan.isPremium ? "text-white" : "text-[#241A17]"}`}
+          <ul className="mt-6 space-y-3">
+            {freeFeatures.map((feature) => (
+              <li
+                key={feature}
+                className="flex items-center gap-2.5 text-sm text-[#6F5E56]"
               >
-                {plan.name}
-              </h2>
-              {plan.isCurrent && (
-                <span className="rounded-full bg-[#FDECEA] px-3 py-1 text-xs font-bold text-[#C75B5B]">
-                  Current Plan
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FDECEA] text-xs font-bold text-[#C75B5B]">
+                  ✓
                 </span>
-              )}
-            </div>
+                {feature}
+              </li>
+            ))}
+          </ul>
 
-            <p
-              className={`mt-4 font-serif text-5xl font-bold ${plan.isPremium ? "text-[#C9A86A]" : "text-[#C75B5B]"}`}
+          {currentPlan === "free" ? (
+            <button
+              disabled
+              className="mt-7 w-full cursor-not-allowed rounded-full bg-[#F3D9D0] py-3.5 font-semibold text-[#A08D84]"
             >
-              {plan.price}
-            </p>
-
-            <ul
-              className={`mt-6 flex flex-col gap-3 text-sm ${plan.isPremium ? "text-white/80" : "text-[#6F5E56]"}`}
+              Current Plan
+            </button>
+          ) : (
+            <button
+              disabled
+              className="mt-7 w-full cursor-not-allowed rounded-full border border-[#E8D5CE] py-3.5 font-semibold text-[#A08D84]"
             >
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-2">
-                  <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${plan.isPremium ? "bg-[#C9A86A] text-[#241A17]" : "bg-[#FDECEA] text-[#C75B5B]"}`}
-                  >
-                    ✓
-                  </span>
-                  {feature}
-                </li>
-              ))}
-            </ul>
+              Free Plan
+            </button>
+          )}
+        </motion.div>
 
-            {plan.isPremium && !plan.isCurrent && (
-              <button
-                onClick={handleUpgrade}
-                className="mt-7 w-full rounded-full bg-[#C75B5B] py-3.5 text-sm font-semibold text-white transition hover:bg-[#B04A4A]"
+        {/* Premium plan */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="relative rounded-[28px] bg-[#241A17] p-7 text-white shadow-[0_20px_50px_rgba(36,26,23,0.25)]"
+        >
+          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#C9A86A] to-[#F0D9A8] px-5 py-1.5 text-xs font-bold text-[#241A17]">
+            ★ POPULAR
+          </span>
+
+          <p className="font-serif text-xl font-bold text-[#F0D9A8]">
+            Premium Plan
+          </p>
+          <p className="mt-3 font-serif text-4xl font-bold text-white">
+            ৳4,999
+            <span className="text-base font-normal text-white/50">
+              {" "}
+              / 30 days
+            </span>
+          </p>
+
+          <ul className="mt-6 space-y-3">
+            {premiumFeatures.map((feature) => (
+              <li
+                key={feature}
+                className="flex items-center gap-2.5 text-sm text-white/80"
               >
-                Upgrade to Premium →
-              </button>
-            )}
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#C9A86A]/25 text-xs font-bold text-[#F0D9A8]">
+                  ✓
+                </span>
+                {feature}
+              </li>
+            ))}
+          </ul>
 
-            {!plan.isPremium && plan.isCurrent && (
-              <p className="mt-7 rounded-full bg-[#FFF9F5] py-3 text-center text-xs font-semibold text-[#A08D84]">
-                You are on the Free Plan
-              </p>
-            )}
-          </motion.div>
-        ))}
+          {currentPlan === "premium" ? (
+            <button
+              disabled
+              className="mt-7 w-full cursor-not-allowed rounded-full bg-gradient-to-r from-[#C9A86A] to-[#F0D9A8] py-3.5 font-semibold text-[#241A17]"
+            >
+              ★ Current Plan
+            </button>
+          ) : (
+            <button
+              onClick={handleUpgrade}
+              disabled={upgrading}
+              className="mt-7 w-full rounded-full bg-[#C75B5B] py-3.5 font-semibold text-white transition hover:bg-[#B04A4A] disabled:opacity-60"
+            >
+              {upgrading ? "Redirecting to payment..." : "Upgrade to Premium"}
+            </button>
+          )}
+        </motion.div>
       </div>
     </div>
   );
